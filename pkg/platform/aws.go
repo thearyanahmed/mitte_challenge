@@ -1,9 +1,12 @@
 package platform
 
 import (
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func CreateAWSSession(accessKeyId, secretAccessKeyId, token, region string) (*session.Session, error) {
@@ -21,11 +24,21 @@ func createS3Credentials(accessKeyId, secretAccessKeyId, token, region string) (
 	_, err := creds.Get()
 
 	if err != nil {
-		// handle error
+		// @todo handle error
 		return nil, err
 	}
 
 	cfg := aws.NewConfig().WithRegion(region).WithCredentials(creds)
 
 	return cfg, nil
+}
+
+func CreateDynamodbConnection(session *session.Session) *dynamodb.DynamoDB {
+	return dynamodb.New(session)
+}
+
+type handleFunc = func(events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
+
+func Serve(handler handleFunc) {
+	lambda.Start(handler)
 }
