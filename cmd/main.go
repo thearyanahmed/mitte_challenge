@@ -6,8 +6,6 @@ import (
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/joho/godotenv"
 
@@ -36,13 +34,11 @@ func main() {
 		// @todo handle better way, make sure to log
 		fmt.Println("could not establish session, quiting", err)
 		return
-	} else {
-		fmt.Println("Connected")
-		return
 	}
 
-	db = dynamodb.New(awsSession)
-	lambda.Start(handler)
+	db = platform.CreateDynamodbConnection(awsSession)
+
+	platform.Serve(handler)
 }
 
 func handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
