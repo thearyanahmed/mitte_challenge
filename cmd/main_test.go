@@ -42,6 +42,6 @@ func TestUnregisteredRoute(t *testing.T) {
 
 	assert.IsType(t, err, nil)
 
-	stringBody, _ := json.Marshal(map[string]string{"message": "method not allowed."})
+	stringBody, _ := json.Marshal(map[string]string{"message": "bad request."})
 	assert.Equal(t, string(stringBody), resp.Body)
 }
