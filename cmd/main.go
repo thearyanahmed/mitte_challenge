@@ -42,7 +42,9 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	switch req.HTTPMethod {
+	switch req.Path {
+	case "/user/create": // register route here
+		return routeHandler.CreateUser(req)
 	default:
 		return routeHandler.UnhandledMethod()
 	}
