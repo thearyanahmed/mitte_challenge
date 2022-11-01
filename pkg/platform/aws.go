@@ -1,7 +1,6 @@
 package platform
 
 import (
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -37,8 +36,6 @@ func CreateDynamodbConnection(session *session.Session) *dynamodb.DynamoDB {
 	return dynamodb.New(session)
 }
 
-type handleFunc = func(events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
-
-func Serve(handler handleFunc) {
+func Serve(handler interface{}) {
 	lambda.Start(handler)
 }
