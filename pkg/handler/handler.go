@@ -7,10 +7,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func handler() {
-	fmt.Println("Handler")
-}
-
 func UnhandledMethod() (*events.APIGatewayProxyResponse, error) {
 	// @todo : change here
 	fmt.Println("method not allowed")
