@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -32,7 +31,7 @@ func main() {
 
 	if err != nil {
 		// @todo handle better way, make sure to log
-		fmt.Println("could not establish session, quiting", err)
+		log.Fatalf("could not establish session. %v\n", err)
 		return
 	}
 
@@ -42,8 +41,9 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+	// @todo also make sure we are handling httpMethod
 	switch req.Path {
-	case "/user/create": // register route here
+	case routeHandler.CreateUserRoutePath: // register route here
 		return routeHandler.CreateUser(req)
 	default:
 		return routeHandler.UnhandledMethod()
