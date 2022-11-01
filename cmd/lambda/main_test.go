@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -10,12 +11,15 @@ import (
 )
 
 var (
-	ctx = context.Background()
+	ctx     = context.Background()
+	headers = map[string]string{"Content-Type": "application/json"}
 )
 
 func TestUnregisteredRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
-		Path: "/user/create",
+		Path:       "/user/create",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
 	}
 
 	resp, err := handler(ctx, req)

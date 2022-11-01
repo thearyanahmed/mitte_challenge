@@ -12,7 +12,9 @@ func SetupRouter(db *dynamodbiface.DynamoDBAPI) *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/user/create", NewCreateUserHandler(db).ServeHTTP)
+	r.Route("/user", func(r chi.Router) {
+		r.With(CheckContentTypeJSON).Post("/create", NewCreateUserHandler(db).ServeHTTP)
+	})
 
 	return r
 }
