@@ -6,5 +6,5 @@ import (
 )
 
 func UnhandledMethod() (*events.APIGatewayProxyResponse, error) {
-	return presenter.BadRequest()
+	return presenter.ErrBadRequest()
 }

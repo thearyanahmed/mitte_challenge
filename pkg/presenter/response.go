@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func ErrorResponse(statusCode int, body interface{}) (*events.APIGatewayProxyResponse, error) {
+func Response(statusCode int, body interface{}) (*events.APIGatewayProxyResponse, error) {
 	resp := events.APIGatewayProxyResponse{Headers: map[string]string{"Content-Type": "application/json"}}
 	resp.StatusCode = statusCode
 
@@ -22,8 +22,13 @@ func ErrorResponse(statusCode int, body interface{}) (*events.APIGatewayProxyRes
 	return &resp, err
 }
 
-func BadRequest() (*events.APIGatewayProxyResponse, error) {
+func ErrBadRequest() (*events.APIGatewayProxyResponse, error) {
 	msg := map[string]string{"message": "bad request."}
 
-	return ErrorResponse(http.StatusBadRequest, msg)
+	return Response(http.StatusBadRequest, msg)
+}
+
+func ErrResponse(err error) (*events.APIGatewayProxyResponse, error) {
+	msg := map[string]string{"message": err.Error()}
+	return Response(http.StatusBadRequest, msg)
 }
