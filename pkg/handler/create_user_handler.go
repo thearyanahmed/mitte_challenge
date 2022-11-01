@@ -1,22 +1,23 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 )
 
-const CreateUserRoutePath = "/user/create"
-const CreateUserHttpMethod = http.MethodPost
+type createUserHandler struct {
+	// @todo use interface
+	db *dynamodbiface.DynamoDBAPI
+}
 
-func CreateUser(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	resp := events.APIGatewayProxyResponse{Headers: map[string]string{"Content-Type": "application/json"}}
+func NewCreateUserHandler(db *dynamodbiface.DynamoDBAPI) *createUserHandler {
+	return &createUserHandler{
+		db: db,
+	}
+}
 
-	data := req.Body
-
-	stringBody, _ := json.Marshal(map[string]string{"message": "method is allowed.", "data": data})
-	resp.Body = string(stringBody)
-
-	return &resp, nil
+func (h *createUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	presenter.Response(w, http.StatusOK, map[string]string{"message": "/user/create"})
 }
