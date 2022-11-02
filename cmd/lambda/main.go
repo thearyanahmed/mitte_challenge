@@ -11,6 +11,7 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/config"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
 	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
+	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
 var (
@@ -26,7 +27,8 @@ func init() {
 		log.Fatalf("could not establish connection to database.%v\n", err)
 	}
 
-	r := routeHandler.SetupRouter(db)
+	aggregator := service.NewServiceAggregator(db)
+	r := routeHandler.SetupRouter(aggregator)
 
 	setupAdapter(r)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/config"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
 	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
+	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
 var (
@@ -27,7 +28,12 @@ func main() {
 	envValues := config.GetEnvValues()
 	db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
 
-	r := routeHandler.SetupRouter(db)
+	if err != nil {
+		log.Fatalf("could not connect to database.%v\n", err)
+	}
+
+	aggregator := service.NewServiceAggregator(db)
+	r := routeHandler.SetupRouter(aggregator)
 
 	http.ListenAndServe(fmt.Sprintf("localhost:%s", getPort()), r)
 }
