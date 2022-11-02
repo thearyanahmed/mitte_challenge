@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -15,7 +14,7 @@ var (
 	headers = map[string]string{"Content-Type": "application/json"}
 )
 
-func TestUnregisteredRoute(t *testing.T) {
+func TestCreateRandomUserRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
 		Path:       "/user/create",
 		Headers:    headers,
@@ -25,7 +24,10 @@ func TestUnregisteredRoute(t *testing.T) {
 	resp, err := handler(ctx, req)
 
 	assert.IsType(t, err, nil)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	stringBody, _ := json.Marshal(map[string]string{"message": "/user/create"})
-	assert.Equal(t, string(stringBody), string(resp.Body))
+	expectedNonNullKeys := []string{"id", "name", "email", "password", "gender", "age"}
+	for _, v := range expectedNonNullKeys {
+		assert.Contains(t, resp.Body, v)
+	}
 }
