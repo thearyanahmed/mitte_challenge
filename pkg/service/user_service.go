@@ -19,7 +19,7 @@ type UserService struct {
 }
 
 type userRepository interface {
-	StoreUser(context.Context, repository.UserSchema) (repository.UserSchema, error)
+	StoreUser(context.Context, repository.UserSchema) error
 }
 
 func NewUserService(repo userRepository) *UserService {

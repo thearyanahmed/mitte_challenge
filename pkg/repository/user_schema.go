@@ -7,14 +7,14 @@ import (
 )
 
 type UserSchema struct {
-	ID        string    `db:"id" dynamodbav:"id"`
-	Name      string    `db:"name" dynamodbav:"name"`
-	Email     string    `db:"email" dynamodbav:"email"`
-	Password  string    `db:"password" dynamodbav:"password"`
-	Age       int8      `db:"age" dynamodbav:"age"`
-	Gender    string    `db:"gender" dynamodbav:"gender"`
-	CreatedAt time.Time `db:"created_at" dynamodbav:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" dynamodbav:"updated_at"`
+	ID        string    `json:"id" dynamodbav:"id"`
+	Name      string    `json:"name" dynamodbav:"name"`
+	Email     string    `json:"email" dynamodbav:"email"`
+	Password  string    `json:"password" dynamodbav:"password"`
+	Age       int8      `json:"age" dynamodbav:"age"`
+	Gender    string    `json:"gender" dynamodbav:"gender"`
+	CreatedAt time.Time `json:"created_at,omitempty" dynamodbav:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty" dynamodbav:"updated_at,omitempty"`
 }
 
 func FromUser(e entity.User) UserSchema {
