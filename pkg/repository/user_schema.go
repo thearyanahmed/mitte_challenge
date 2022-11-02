@@ -11,6 +11,7 @@ type UserSchema struct {
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
+	Salt      string    `db:"salt"`
 	Age       int8      `db:"age"`
 	Gender    string    `db:"gender"`
 	CreatedAt time.Time `db:"created_at"`
