@@ -17,6 +17,6 @@ func NewUserRepository(db *dynamodb.Client) *UserRepository {
 	}
 }
 
-func (r *UserRepository) CreateUser() (UserSchema, error) {
+func (r *UserRepository) StoreUser(user UserSchema) (UserSchema, error) {
 	return UserSchema{}, nil
 }
