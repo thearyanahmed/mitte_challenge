@@ -11,14 +11,13 @@ type UserSchema struct {
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
-	Salt      string    `db:"salt"`
 	Age       int8      `db:"age"`
 	Gender    string    `db:"gender"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func From(e entity.User) UserSchema {
+func FromUser(e entity.User) UserSchema {
 	return UserSchema{
 		ID:        e.ID,
 		Name:      e.Name,
@@ -31,7 +30,7 @@ func From(e entity.User) UserSchema {
 	}
 }
 
-func (u *UserSchema) ToEntity() entity.User {
+func (u UserSchema) ToEntity() entity.User {
 	return entity.User{
 		ID:        u.ID,
 		Name:      u.Name,
