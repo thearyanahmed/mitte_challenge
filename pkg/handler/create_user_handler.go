@@ -3,16 +3,16 @@ package handler
 import (
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 )
 
 type createUserHandler struct {
 	// @todo use interface
-	db *dynamodbiface.DynamoDBAPI
+	db *dynamodb.Client
 }
 
-func NewCreateUserHandler(db *dynamodbiface.DynamoDBAPI) *createUserHandler {
+func NewCreateUserHandler(db *dynamodb.Client) *createUserHandler {
 	return &createUserHandler{
 		db: db,
 	}

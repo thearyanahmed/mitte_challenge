@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/go-chi/chi/v5"
 
 	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	db        dynamodbiface.DynamoDBAPI
+	db        dynamodb.Client
 	chiLambda *chiadapter.ChiLambda
 )
 
@@ -26,7 +26,7 @@ var (
 // ```
 // reference: https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
 func checkEnv() {
-	keys := []string{"AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "AWS_REGION"}
+	keys := []string{"AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "AWS_REGION", "DB_ENDPOINT"}
 
 	for _, key := range keys {
 		if os.Getenv(key) == "" {
@@ -35,25 +35,32 @@ func checkEnv() {
 	}
 }
 
-func init() {
+type EnvValues struct {
+	AccessKey, SecretKey, Region, Token, DbEndpoint string
+}
+
+func getEnvValues() EnvValues {
 	checkEnv()
 
-	awsSession, err := platform.CreateAWSSession(
-		os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		os.Getenv("AWS_SECRET_KEY"),
-		"",
-		os.Getenv("AWS_REGION"),
-	)
+	return EnvValues{
+		AccessKey:  os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		SecretKey:  os.Getenv("AWS_SECRET_KEY"),
+		Region:     os.Getenv("AWS_REGION"),
+		Token:      "",
+		DbEndpoint: os.Getenv("DB_ENDPOINT"),
+	}
+}
+
+func init() {
+	envValues := getEnvValues()
+
+	db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
 
 	if err != nil {
-		// @todo handle better way, make sure to log
-		log.Fatalf("could not establish session. %v\n", err)
-		return
+		log.Fatalf("could not establish connection to database.%v\n", err)
 	}
 
-	db = platform.CreateDynamodbConnection(awsSession)
-
-	r := routeHandler.SetupRouter(&db)
+	r := routeHandler.SetupRouter(db)
 
 	setupAdapter(r)
 }
