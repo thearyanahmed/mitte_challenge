@@ -12,13 +12,14 @@ services:
   app:
     build:
       context: .
-    command: "go run /app/cmd/local/main.go"
+    command: "make run"
     environment:
       APP_PORT: '${APP_PORT}'
       AWS_REGION: '${AWS_REGION}'
       AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
       AWS_SECRET_KEY: '${AWS_SECRET_KEY}'
       REGION: '${AWS_REGION}'
+      DB_ENDPOINT: '${DB_ENDPOINT}'
     volumes:
       - .:/app
     ports:
@@ -27,3 +28,24 @@ services:
       - "db"
     links:
       - "db"
+  # prod:
+  #   build:
+  #     context: .
+  #   command: "make run-prod"
+  #   environment:
+  #     APP_PORT: '${APP_PORT}'
+  #     AWS_REGION: '${AWS_REGION}'
+  #     AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
+  #     AWS_SECRET_KEY: '${AWS_SECRET_KEY}'
+  #     REGION: '${AWS_REGION}'
+  #     DB_ENDPOINT: '${DB_ENDPOINT}'
+  #     _LAMBDA_SERVER_PORT: ''
+  #     AWS_LAMBDA_RUNTIME_API: 'go1.x'
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - "db"
+  #   links:
+  #     - "db"

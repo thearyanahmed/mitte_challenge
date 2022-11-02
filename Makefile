@@ -13,11 +13,16 @@ docker-ssh:
 	@docker-compose exec $(DOCKER_APP_CONTAINER) bash
 
 run:
-	@CompileDaemon -build='make build' -graceful-kill -command='./out/api'
+	@CompileDaemon -build='make build-local' -graceful-kill -command='./build/local'
+
+run-prod:
+	@CompileDaemon -build='make build' -graceful-kill -command='./build/prod'
 
 build:
-	@CGO_ENABLED=0 go build -o out/api
+	env GOOS=linux GOARCH=arm go build -o build/prod -v cmd/lambda/main.go
 
+build-local:
+	@CGO_ENABLED=0 env GOOS=linux GOARCH=arm go build -o build/local -v cmd/local/main.go
 deps:
 	${call go, mod vendor}
 

@@ -1,3 +1,4 @@
 .env
 out/
 docker/dynamodb/*.db
+build/
