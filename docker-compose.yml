@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  db:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: db
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  app:
+    build:
+      context: .
+    command: "go run /app/cmd/local/main.go"
+    environment:
+      APP_PORT: '${APP_PORT}'
+      AWS_REGION: '${AWS_REGION}'
+      AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
+      AWS_SECRET_KEY: '${AWS_SECRET_KEY}'
+      REGION: '${AWS_REGION}'
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "db"
+    links:
+      - "db"
