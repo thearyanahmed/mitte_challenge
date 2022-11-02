@@ -33,10 +33,8 @@ func main() {
 	db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
 
 	if err != nil {
-		log.Fatalf("could not connect to database.%v\n", err)
+		log.Fatal(err)
 	}
-
-	fmt.Println(envValues)
 
 	aggregator := service.NewServiceAggregator(db)
 	r := routeHandler.SetupRouter(aggregator)
@@ -46,8 +44,6 @@ func main() {
 		log.Fatal(err)
 	}
 	addr := fmt.Sprintf("0.0.0.0:%s", getPort())
-
-	fmt.Println("Connected. Will be serving on : ", addr)
 
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("could not serve. %v\n", err)
