@@ -9,6 +9,8 @@ func Response(w http.ResponseWriter, statusCode int, body interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 
 	j, _ := json.Marshal(body)
+
+	w.WriteHeader(statusCode)
 	w.Write(j)
 }
 
@@ -17,7 +19,7 @@ func ErrBadRequest(w http.ResponseWriter) {
 	Response(w, http.StatusBadRequest, msg)
 }
 
-func ErrResponse(w http.ResponseWriter, err error) {
+func ErrResponse(w http.ResponseWriter, statusCode int, err error) {
 	msg := map[string]string{"message": err.Error()}
-	Response(w, http.StatusBadRequest, msg)
+	Response(w, statusCode, msg)
 }
