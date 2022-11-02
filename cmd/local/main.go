@@ -43,7 +43,7 @@ func main() {
 
 	err = waitForTable(context.Background(), db)
 	if err != nil {
-		log.Fatal("ERRRRRR", err)
+		log.Fatal(err)
 	}
 	addr := fmt.Sprintf("0.0.0.0:%s", getPort())
 

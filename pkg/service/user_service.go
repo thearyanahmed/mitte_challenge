@@ -12,14 +12,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const defaultPasswordLenght = 10
+const defaultPasswordLength = 10
 
 type UserService struct {
 	repository userRepository
 }
 
+// userRepository the bridge between db and service layer
+// context is passed from the handler layer, from the request context
 type userRepository interface {
 	StoreUser(context.Context, repository.UserSchema) error
+	FindUserById(context.Context, string) (repository.UserSchema, error)
 }
 
 func NewUserService(repo userRepository) *UserService {
@@ -28,12 +31,9 @@ func NewUserService(repo userRepository) *UserService {
 	}
 }
 
+// CreateRandomUser
 func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error) {
-	// create random user
-	randomStr, err := createRandomString(defaultPasswordLenght)
-	if err != nil {
-		return entity.User{}, err
-	}
+	randomStr := "secret" // createRandomString(defaultPasswordLenght)
 
 	hashed, err := hashAndSalt([]byte(randomStr))
 
@@ -50,17 +50,24 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		Age:      int8(gofakeit.Number(1, 100)),
 	}
 
-	fmt.Println("Service user: ", usr)
-	createdUser, err := u.repository.StoreUser(ctx, repository.FromUser(usr))
+	err = u.repository.StoreUser(ctx, repository.FromUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	x := createdUser.ToEntity()
-	x.Password = randomStr // @note: so we can show the user's password, according to the requirement. Ideally, we will not send password with the response
+	// fetch the user
+	createdUser, err := u.repository.FindUserById(ctx, usr.ID)
+	if err != nil {
+		// user have been created, but can't fetch it, maybe db is unavailable ? or some other issue
+		return entity.User{}, err
+	}
 
-	return x, nil
+	// @note: so we can show the user's password, according to the requirement. Ideally, we will not send password with the response
+	newUserEntity := createdUser.ToEntity()
+	newUserEntity.Password = randomStr
+
+	return newUserEntity, nil
 }
 
 func createRandomString(n int8) (string, error) {
