@@ -3,18 +3,18 @@ package handler
 import (
 	"net/http"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
+	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
 type createUserHandler struct {
 	// @todo use interface
-	db *dynamodb.Client
+	service *service.UserService
 }
 
-func NewCreateUserHandler(db *dynamodb.Client) *createUserHandler {
+func NewCreateUserHandler(service *service.UserService) *createUserHandler {
 	return &createUserHandler{
-		db: db,
+		service: service,
 	}
 }
 
