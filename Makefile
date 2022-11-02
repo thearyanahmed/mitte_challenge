@@ -27,7 +27,10 @@ deps:
 	${call go, mod vendor}
 
 test:
-	${call go, test -v ./...}
+	${call go, export $(grep -v '^#' .env | xargs)  go test ./pkg/...}
+
+test-lambda:
+	${call go, export $(grep -v '^#' .env | xargs) ; go test ./cmd/lambda/...}
 
 #---- docker enviroment ----
 ifdef DOCKER_COMPOSE_EXISTS

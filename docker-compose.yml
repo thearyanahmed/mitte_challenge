@@ -12,6 +12,7 @@ services:
   app:
     build:
       context: .
+      
     command: "make run"
     environment:
       APP_PORT: '${APP_PORT}'

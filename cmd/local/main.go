@@ -45,6 +45,8 @@ func main() {
 	}
 	addr := fmt.Sprintf("0.0.0.0:%s", getPort())
 
+	fmt.Printf("connected to db. willbe serving on %s inside container.", addr)
+
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("could not serve. %v\n", err)
 	}
