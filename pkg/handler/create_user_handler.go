@@ -18,7 +18,7 @@ func NewCreateUserHandler(service *service.UserService) *createUserHandler {
 }
 
 func (h *createUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	user, err := h.service.CreateRandomUser()
+	user, err := h.service.CreateRandomUser(r.Context())
 
 	if err != nil {
 		presenter.ErrResponse(w, http.StatusBadRequest, err)

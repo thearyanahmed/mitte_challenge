@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
@@ -17,7 +19,7 @@ type UserService struct {
 }
 
 type userRepository interface {
-	StoreUser(user repository.UserSchema) (repository.UserSchema, error)
+	StoreUser(context.Context, repository.UserSchema) (repository.UserSchema, error)
 }
 
 func NewUserService(repo userRepository) *UserService {
@@ -26,7 +28,7 @@ func NewUserService(repo userRepository) *UserService {
 	}
 }
 
-func (u *UserService) CreateRandomUser() (entity.User, error) {
+func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error) {
 	// create random user
 	randomStr, err := createRandomString(defaultPasswordLenght)
 	if err != nil {
@@ -41,11 +43,15 @@ func (u *UserService) CreateRandomUser() (entity.User, error) {
 
 	usr := entity.User{
 		ID:       uuid.New().String(),
-		Name:     "name",
+		Name:     gofakeit.Name(),
 		Password: hashed,
+		Email:    gofakeit.Email(),
+		Gender:   gofakeit.Gender(),
+		Age:      int8(gofakeit.Number(1, 100)),
 	}
 
-	createdUser, err := u.repository.StoreUser(repository.FromUser(usr))
+	fmt.Println("Service user: ", usr)
+	createdUser, err := u.repository.StoreUser(ctx, repository.FromUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
