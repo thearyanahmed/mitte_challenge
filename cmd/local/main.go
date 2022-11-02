@@ -6,10 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/joho/godotenv"
 
 	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
@@ -39,7 +36,7 @@ func main() {
 	aggregator := service.NewServiceAggregator(db)
 	r := routeHandler.SetupRouter(aggregator)
 
-	err = waitForTable(context.Background(), db)
+	err = platform.WaitForDB(context.Background(), db, "users")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,21 +47,6 @@ func main() {
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("could not serve. %v\n", err)
 	}
-}
-
-func waitForTable(ctx context.Context, db *dynamodb.Client) error {
-	w := dynamodb.NewTableExistsWaiter(db)
-	err := w.Wait(ctx,
-		&dynamodb.DescribeTableInput{
-			TableName: aws.String("users"),
-		},
-		20*time.Second,
-		func(o *dynamodb.TableExistsWaiterOptions) {
-			o.MaxDelay = 5 * time.Second
-			o.MinDelay = 5 * time.Second
-		})
-
-	return err
 }
 
 func getPort() string {

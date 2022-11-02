@@ -22,7 +22,7 @@ build:
 	env GOOS=linux GOARCH=arm go build -o build/prod -v cmd/lambda/main.go
 
 build-local:
-	@CGO_ENABLED=0 env GOOS=linux GOARCH=arm go build -o build/local -v cmd/local/main.go
+	env GOOS=linux GOARCH=arm go build -o build/local -v cmd/local/main.go
 deps:
 	${call go, mod vendor}
 

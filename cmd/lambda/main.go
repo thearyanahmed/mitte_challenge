@@ -25,12 +25,16 @@ func init() {
 	db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
 
 	if err != nil {
-		log.Fatalf("could not establish connection to database.%v\n", err)
+		log.Fatal(err)
 	}
 
 	fmt.Println(envValues)
 
-	fmt.Println("Add wait before execution with database")
+	err = platform.WaitForDB(context.Background(), db, "users")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	aggregator := service.NewServiceAggregator(db)
 	r := routeHandler.SetupRouter(aggregator)
 
