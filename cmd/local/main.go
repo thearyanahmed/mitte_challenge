@@ -6,16 +6,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/joho/godotenv"
 
 	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
+	"github.com/thearyanahmed/mitte_challenge/pkg/config"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
 	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
 )
 
 var (
-	db        dynamodbiface.DynamoDBAPI
 	chiLambda *chiadapter.ChiLambda
 )
 
@@ -25,22 +24,10 @@ func main() {
 		log.Fatal("error loading .env file")
 	}
 
-	awsSession, err := platform.CreateAWSSession(
-		os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		os.Getenv("AWS_SECRET_KEY"),
-		"",
-		os.Getenv("AWS_REGION"),
-	)
+	envValues := config.GetEnvValues()
+	db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
 
-	if err != nil {
-		// @todo handle better way, make sure to log
-		log.Fatalf("could not establish session. %v\n", err)
-		return
-	}
-
-	db = platform.CreateDynamodbConnection(awsSession)
-
-	r := routeHandler.SetupRouter(&db)
+	r := routeHandler.SetupRouter(db)
 
 	http.ListenAndServe(fmt.Sprintf("localhost:%s", getPort()), r)
 }
