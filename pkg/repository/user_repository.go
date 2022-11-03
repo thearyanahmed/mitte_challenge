@@ -2,14 +2,16 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const table = "users"
+const users_table = "users"
 
 // UserRepository represents the user repository that communicates with the database.
 type UserRepository struct {
@@ -30,7 +32,7 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Item:      attribute,
 	})
 
@@ -38,10 +40,51 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 }
 
 func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchema, error) {
+	return r.findUserBy(ctx, "id", id)
+}
+
+// @todo change returns, manage errors better
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
+	filt := expression.Name("email").Equal(expression.Value(email))
+	expr, err := expression.NewBuilder().WithFilter(filt).Build()
+
+	if err != nil {
+		// @todo these should to send raw error
+		return UserSchema{}, err
+	}
+
+	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
+		TableName:                 aws.String(users_table),
+		Limit:                     aws.Int32(1),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+	})
+
+	if err != nil {
+		return UserSchema{}, err
+	}
+
+	if result.Count < 1 {
+		return UserSchema{}, errors.New("no records found")
+	}
+
+	user := UserSchema{}
+
+	var marshalErr error
+	for _, v := range result.Items {
+		marshalErr = attributevalue.UnmarshalMap(v, &user)
+		break
+	}
+
+	return user, marshalErr
+}
+
+func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (UserSchema, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Key: map[string]types.AttributeValue{
-			"id": &types.AttributeValueMemberS{Value: id},
+			key: &types.AttributeValueMemberS{Value: value},
 		},
 	})
 

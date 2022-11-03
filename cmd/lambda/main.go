@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -26,8 +27,14 @@ func init() {
 	if err != nil {
 		log.Fatalf("could not establish connection to database.%v\n", err)
 	}
+	fmt.Println(envValues)
 
 	aggregator := service.NewServiceAggregator(db)
+
+	if err = platform.WaitForDB(context.Background(), db, "users"); err != nil {
+		log.Fatal(err)
+	}
+
 	r := routeHandler.SetupRouter(aggregator)
 
 	setupAdapter(r)
