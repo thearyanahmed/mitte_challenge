@@ -56,7 +56,6 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 
 	result, err := r.db.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName:                 aws.String(users_table),
-		Limit:                     aws.Int32(1),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
