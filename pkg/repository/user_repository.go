@@ -53,7 +53,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 		return UserSchema{}, err
 	}
 
-	result, err := r.db.Scan(context.TODO(), &dynamodb.ScanInput{
+	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
 		TableName:                 aws.String(users_table),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),

@@ -24,5 +24,9 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
+	r.Route("/swipe", func(r chi.Router) {
+		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
+	})
+
 	return r
 }
