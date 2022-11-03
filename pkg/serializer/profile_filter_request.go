@@ -1,7 +1,6 @@
 package serializer
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -13,8 +12,6 @@ type ProfileFilterRequest struct {
 
 // Bind only implements interface contract.
 func (u *ProfileFilterRequest) Bind(r *http.Request) error {
-	fmt.Println("IS bind")
-
 	return nil
 }
 
