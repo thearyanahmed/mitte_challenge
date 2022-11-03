@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -77,8 +76,6 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 		marshalErr = attributevalue.UnmarshalMap(v, &user)
 		break
 	}
-
-	fmt.Println("USER", user, marshalErr)
 
 	return user, marshalErr
 }

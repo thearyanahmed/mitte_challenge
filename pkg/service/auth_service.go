@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type authRepository interface {
 
 type tokenRepository interface {
 	StoreToken(ctx context.Context, token repository.TokenSchema) error
+	FindToken(ctx context.Context, token string) (repository.TokenSchema, error)
 }
 
 func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService {
@@ -29,6 +32,23 @@ func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService
 		repository:      repo,
 		tokenRepository: tokenRepo,
 	}
+}
+
+func (s *AuthService) ValidateToken(ctx context.Context, token string) (string, error) {
+	tokenSchema, err := s.tokenRepository.FindToken(ctx, token)
+
+	if err != nil {
+		fmt.Println("CHECKPOINT 3")
+		return "", err
+	}
+
+	if tokenSchema.Revoked {
+		fmt.Println("CHECKPOINT 4")
+
+		return "", errors.New("token has expired")
+	}
+
+	return tokenSchema.UserId, nil
 }
 
 func (s *AuthService) GenerateNewToken(ctx context.Context, userId string) (entity.Token, error) {

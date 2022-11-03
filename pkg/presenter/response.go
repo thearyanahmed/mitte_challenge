@@ -63,6 +63,13 @@ func ErrInvalidCredentials() *ErrorResponse {
 	}
 }
 
+func ErrUnauthorized() *ErrorResponse {
+	return &ErrorResponse{
+		Code:    http.StatusUnauthorized,
+		Message: "unauthorized",
+	}
+}
+
 // ErrorInternal returns an error response for internal server error.
 func ErrorInternal(err error) *ErrorResponse {
 	return &ErrorResponse{
