@@ -33,9 +33,8 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.authService.FindUserByEmail(r.Context(), loginReq.Email)
-
 	if err != nil {
-		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		_ = presenter.ErrBadRequest(err)
 		return
 	}
 

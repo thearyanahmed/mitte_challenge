@@ -9,7 +9,7 @@ import (
 type TokenSchema struct {
 	ID        string    `json:"id" dynamodbav:"id"`
 	UserId    string    `json:"user_id" dynamodbav:"user_id"`
-	Token     string    `json:"email" dynamodbav:"email"`
+	Token     string    `json:"token" dynamodbav:"token"`
 	Revoked   bool      `json:"revoked" dynamodbav:"revoked"` // use 1 or 0
 	CreatedAt time.Time `json:"created_at,omitempty" dynamodbav:"created_at"`
 }

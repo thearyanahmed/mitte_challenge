@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,7 +14,7 @@ import (
 )
 
 type AuthService struct {
-	repository      authRepository
+	userRepository  authRepository
 	tokenRepository tokenRepository
 }
 
@@ -22,15 +24,48 @@ type authRepository interface {
 
 type tokenRepository interface {
 	StoreToken(ctx context.Context, token repository.TokenSchema) error
+	FindToken(ctx context.Context, token string) (repository.TokenSchema, error)
 }
 
 func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService {
 	return &AuthService{
-		repository:      repo,
+		userRepository:  repo,
 		tokenRepository: tokenRepo,
 	}
 }
 
+func (s *AuthService) ValidateToken(ctx context.Context, token string) (string, error) {
+	tokenSchema, err := s.tokenRepository.FindToken(ctx, token)
+
+	if err != nil {
+		return "", err
+	}
+
+	if tokenSchema.Revoked {
+		fmt.Println("CHECKPOINT 4")
+
+		return "", errors.New("token has expired")
+	}
+
+	return tokenSchema.UserId, nil
+}
+
+func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error) {
+	return s.userRepository.FindUserByEmail(ctx, email)
+}
+
+// @todo hashing can live in it's own service
+func (s *AuthService) ComparePassword(hashedPwd string, plainPwd []byte) bool {
+	// Since we'll be getting the hashed password from the DB it
+	// will be a string so we'll need to convert it to a byte slice
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
 func (s *AuthService) GenerateNewToken(ctx context.Context, userId string) (entity.Token, error) {
 	// @todo should be configurable
 	randomStr, err := utils.CreateRandomString(32)
@@ -58,21 +93,4 @@ func newToken(userId, token string) entity.Token {
 		Revoked:   false,
 		CreatedAt: time.Now(),
 	}
-}
-
-func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error) {
-	return s.repository.FindUserByEmail(ctx, email)
-}
-
-// @todo hashing can live in it's own service
-func (s *AuthService) ComparePassword(hashedPwd string, plainPwd []byte) bool {
-	// Since we'll be getting the hashed password from the DB it
-	// will be a string so we'll need to convert it to a byte slice
-	byteHash := []byte(hashedPwd)
-	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
-	if err != nil {
-		return false
-	}
-
-	return true
 }

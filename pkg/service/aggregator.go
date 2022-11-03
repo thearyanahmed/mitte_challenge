@@ -14,8 +14,8 @@ func NewServiceAggregator(db *dynamodb.Client) *ServiceAggregator {
 	userRepo := repository.NewUserRepository(db)
 	userSvc := NewUserService(userRepo)
 
-	tokenRepo := repository.NewTokenRepository(db)
-	authSvc := NewAuthService(userRepo, tokenRepo)
+	tokenRepository := repository.NewTokenRepository(db)
+	authSvc := NewAuthService(userRepo, tokenRepository)
 
 	return &ServiceAggregator{
 		UserService: userSvc,
