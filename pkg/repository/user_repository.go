@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const table = "users"
+const users_table = "users"
 
 // UserRepository represents the user repository that communicates with the database.
 type UserRepository struct {
@@ -33,7 +33,7 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Item:      attribute,
 	})
 
@@ -44,32 +44,31 @@ func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchem
 	return r.findUserBy(ctx, "id", id)
 }
 
+// @todo change returns, manage errors better
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
-	// email = "clarissajewess@goldner.org"
 	filt := expression.Name("email").Equal(expression.Value(email))
 	expr, err := expression.NewBuilder().WithFilter(filt).Build()
+
 	if err != nil {
-		log.Fatalf("Got error building expression: %s", err)
+		// @todo these should to send raw error
+		return UserSchema{}, err
 	}
 
-	result, err := r.db.Scan(context.TODO(), &dynamodb.ScanInput{
-		TableName: aws.String(table),
-		// Limit:            aws.Int32(5),
+	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
+		TableName:                 aws.String(users_table),
+		Limit:                     aws.Int32(1),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
 	})
 
-	fmt.Println("all records", result.Items, "COUNT ->", result.Count)
-
 	if err != nil {
-		fmt.Println("NOT FOUND ERR != NIL", err)
 		return UserSchema{}, err
 	}
 
-	// if result.Count < 1 {
-	// 	return UserSchema{}, errors.New("no records found")
-	// }
+	if result.Count < 1 {
+		return UserSchema{}, errors.New("no records found")
+	}
 
 	user := UserSchema{}
 
@@ -86,7 +85,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 
 func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (UserSchema, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Key: map[string]types.AttributeValue{
 			key: &types.AttributeValueMemberS{Value: value},
 		},

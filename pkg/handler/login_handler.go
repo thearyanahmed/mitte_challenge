@@ -34,14 +34,28 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// user, err := h.userService
+	user, err := h.authService.FindUserByEmail(r.Context(), loginReq.Email)
 
-	// use HashCheck()
-	if !h.authService.Attempt(r.Context(), loginReq.Email, loginReq.Password) {
+	if err != nil {
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		return
+	}
+
+	if !h.authService.ComparePassword(user.Password, []byte(loginReq.Password)) {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrInvalidCredentials())
 		return
 	}
 
-	fmt.Println("HEllo")
+	fmt.Println("HEllo", user.Password, loginReq.Password)
 	// generate token
 	// h.authService.GenerateTokenFor()
+	token, err := h.authService.GenerateNewToken(r.Context(), "123")
+
+	if err != nil {
+		fmt.Println("ERR", err)
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		return
+	}
+
+	presenter.RenderResponse(w, r, http.StatusCreated, presenter.FromToken(token))
 }

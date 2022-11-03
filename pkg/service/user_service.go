@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"fmt"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
@@ -68,14 +66,6 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 	newUserEntity.Password = randomStr
 
 	return newUserEntity, nil
-}
-
-func createRandomString(n int8) (string, error) {
-	b := make([]byte, n)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%X", b), nil
 }
 
 func hashAndSalt(pwd []byte) (string, error) {
