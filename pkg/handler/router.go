@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
@@ -24,12 +21,8 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 	})
 
 	r.Route("/profile", func(r chi.Router) {
-		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", fn)
+		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler().ServeHTTP)
 	})
 
 	return r
-}
-
-func fn(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CONNECTED", r.Context().Value("userId"))
 }
