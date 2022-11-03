@@ -51,5 +51,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/stretchr/testify v1.8.1
+	github.com/thedevsaddam/govalidator v1.9.10
 	golang.org/x/crypto v0.1.0
 )

@@ -8,6 +8,7 @@ import (
 type ServiceAggregator struct {
 	*UserService
 	*AuthService
+	*SwipeService
 }
 
 func NewServiceAggregator(db *dynamodb.Client) *ServiceAggregator {
@@ -17,8 +18,12 @@ func NewServiceAggregator(db *dynamodb.Client) *ServiceAggregator {
 	tokenRepository := repository.NewTokenRepository(db)
 	authSvc := NewAuthService(userRepo, tokenRepository)
 
+	swipeRepo := repository.NewSwipeRepository(db)
+	swipeSvc := NewSwipeService(swipeRepo)
+
 	return &ServiceAggregator{
-		UserService: userSvc,
-		AuthService: authSvc,
+		UserService:  userSvc,
+		AuthService:  authSvc,
+		SwipeService: swipeSvc,
 	}
 }

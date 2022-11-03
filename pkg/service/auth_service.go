@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,8 +41,6 @@ func (s *AuthService) ValidateToken(ctx context.Context, token string) (string, 
 	}
 
 	if tokenSchema.Revoked {
-		fmt.Println("CHECKPOINT 4")
-
 		return "", errors.New("token has expired")
 	}
 

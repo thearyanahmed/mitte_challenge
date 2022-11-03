@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
@@ -21,11 +21,11 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 	})
 
 	r.Route("/profile", func(r chi.Router) {
-		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
+		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	r.Route("/swipe", func(r chi.Router) {
-		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
+		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewSwipeHanlder(serviceAggregator.SwipeService).ServeHTTP)
 	})
 
 	return r
