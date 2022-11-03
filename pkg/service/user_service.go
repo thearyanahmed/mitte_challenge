@@ -15,17 +15,18 @@ import (
 const defaultPasswordLength = 10
 
 type UserService struct {
-	repository userRepository
+	repository UserRepository
 }
 
-// userRepository the bridge between db and service layer
+// UserRepository the bridge between db and service layer
 // context is passed from the handler layer, from the request context
-type userRepository interface {
+type UserRepository interface {
 	StoreUser(context.Context, repository.UserSchema) error
 	FindUserById(context.Context, string) (repository.UserSchema, error)
+	FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error)
 }
 
-func NewUserService(repo userRepository) *UserService {
+func NewUserService(repo UserRepository) *UserService {
 	return &UserService{
 		repository: repo,
 	}

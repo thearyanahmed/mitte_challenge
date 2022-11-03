@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -33,15 +32,25 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user, err := h.userService
+	user, err := h.authService.FindUserByEmail(r.Context(), loginReq.Email)
+
+	if err != nil {
+		_ = presenter.ErrBadRequest(err)
+		return
+	}
 
 	// use HashCheck()
-	if !h.authService.Attempt(r.Context(), loginReq.Email, loginReq.Password) {
+	if !h.authService.ComparePassword(user.Password, []byte(loginReq.Password)) {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrInvalidCredentials())
 		return
 	}
 
-	fmt.Println("HEllo")
-	// generate token
-	// h.authService.GenerateTokenFor()
+	token, err := h.authService.GenerateNewToken(r.Context(), user.ID)
+
+	if err != nil {
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		return
+	}
+
+	presenter.RenderResponse(w, r, http.StatusCreated, presenter.FromToken(token))
 }

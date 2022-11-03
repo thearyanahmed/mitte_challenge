@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const table = "users"
+const users_table = "users"
 
 // UserRepository represents the user repository that communicates with the database.
 type UserRepository struct {
@@ -33,7 +33,7 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Item:      attribute,
 	})
 
@@ -45,7 +45,6 @@ func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchem
 }
 
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
-	// email = "clarissajewess@goldner.org"
 	filt := expression.Name("email").Equal(expression.Value(email))
 	expr, err := expression.NewBuilder().WithFilter(filt).Build()
 	if err != nil {
@@ -53,7 +52,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 	}
 
 	result, err := r.db.Scan(context.TODO(), &dynamodb.ScanInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		// Limit:            aws.Int32(5),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -86,7 +85,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 
 func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (UserSchema, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(table),
+		TableName: aws.String(users_table),
 		Key: map[string]types.AttributeValue{
 			key: &types.AttributeValueMemberS{Value: value},
 		},
