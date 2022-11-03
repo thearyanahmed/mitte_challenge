@@ -43,6 +43,7 @@ require (
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.2
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.28
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.3
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/render v1.0.2
