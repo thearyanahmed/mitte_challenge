@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -33,7 +32,6 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user, err := h.userService
 	user, err := h.authService.FindUserByEmail(r.Context(), loginReq.Email)
 
 	if err != nil {
@@ -46,13 +44,9 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("HEllo", user.Password, loginReq.Password)
-	// generate token
-	// h.authService.GenerateTokenFor()
-	token, err := h.authService.GenerateNewToken(r.Context(), "123")
+	token, err := h.authService.GenerateNewToken(r.Context(), user.ID)
 
 	if err != nil {
-		fmt.Println("ERR", err)
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
 		return
 	}
