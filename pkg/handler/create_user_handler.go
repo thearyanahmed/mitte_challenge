@@ -21,9 +21,9 @@ func (h *createUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.CreateRandomUser(r.Context())
 
 	if err != nil {
-		presenter.ErrResponse(w, http.StatusBadRequest, err)
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
 		return
 	}
 
-	presenter.Response(w, http.StatusCreated, presenter.FromUser(user))
+	presenter.RenderResponse(w, r, http.StatusCreated, presenter.FromUser(user))
 }

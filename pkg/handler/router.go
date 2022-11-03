@@ -19,9 +19,14 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 		r.With(CheckContentTypeJSON).With(NewAuthMiddleware().Handle).Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
+	r.Route("/auth", func(r chi.Router) {
+		r.With(CheckContentTypeJSON).Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
+	})
+
 	return r
 }
 
+// @WIP
 type middlewareStruct struct {
 }
 
@@ -31,7 +36,7 @@ func NewAuthMiddleware() *middlewareStruct {
 
 func (m *middlewareStruct) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Logged!")
+		fmt.Println("Logged from middleware!")
 		next.ServeHTTP(w, r)
 		// id, err := strconv.Atoi(chi.URLParam(r, "articleID"))
 

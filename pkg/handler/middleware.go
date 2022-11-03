@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
@@ -11,7 +10,7 @@ import (
 func CheckContentTypeJSON(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/json" {
-			presenter.ErrResponse(w, http.StatusBadRequest, errors.New("content-type must be application/json"))
+			_ = presenter.RenderErrorResponse(w, r, presenter.ErrNotacceptable())
 		}
 		next.ServeHTTP(w, r.WithContext(r.Context()))
 	}

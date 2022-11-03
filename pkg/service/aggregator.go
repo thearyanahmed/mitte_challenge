@@ -7,13 +7,17 @@ import (
 
 type ServiceAggregator struct {
 	*UserService
+	*AuthService
 }
 
 func NewServiceAggregator(db *dynamodb.Client) *ServiceAggregator {
 	userRepo := repository.NewUserRepository(db)
 	userSvc := NewUserService(userRepo)
 
+	authSvc := NewAuthService(userRepo)
+
 	return &ServiceAggregator{
 		UserService: userSvc,
+		AuthService: authSvc,
 	}
 }

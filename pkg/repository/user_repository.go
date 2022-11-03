@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -38,14 +39,23 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 }
 
 func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchema, error) {
+	return r.findUserBy(ctx, "id", id)
+}
+
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
+	return r.findUserBy(ctx, "email", email)
+}
+
+func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (UserSchema, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(table),
 		Key: map[string]types.AttributeValue{
-			"id": &types.AttributeValueMemberS{Value: id},
+			key: &types.AttributeValueMemberS{Value: value},
 		},
 	})
 
 	if err != nil {
+		fmt.Println("TRYING TO FIND RECORD BY", key, value)
 		return UserSchema{}, err
 	}
 
@@ -54,6 +64,7 @@ func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchem
 	err = attributevalue.UnmarshalMap(result.Item, &user)
 
 	if err != nil {
+		fmt.Println("ERROR MARSHAL UNMAP")
 		return UserSchema{}, err
 	}
 
