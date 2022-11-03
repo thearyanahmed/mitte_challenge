@@ -21,7 +21,7 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 	})
 
 	r.Route("/profile", func(r chi.Router) {
-		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler().ServeHTTP)
+		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	return r

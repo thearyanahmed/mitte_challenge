@@ -16,12 +16,17 @@ type UserService struct {
 	repository UserRepository
 }
 
+type RequestFilter interface {
+	ToKeyValuePair() map[string]string
+}
+
 // UserRepository the bridge between db and service layer
 // context is passed from the handler layer, from the request context
 type UserRepository interface {
 	StoreUser(context.Context, repository.UserSchema) error
 	FindUserById(context.Context, string) (repository.UserSchema, error)
 	FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error)
+	FindUsers(ctx context.Context, filters map[string]string) ([]repository.UserSchema, error)
 }
 
 func NewUserService(repo UserRepository) *UserService {
@@ -49,7 +54,7 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		Age:      int8(gofakeit.Number(1, 100)),
 	}
 
-	err = u.repository.StoreUser(ctx, repository.FromUser(usr))
+	err = u.repository.StoreUser(ctx, repository.FromNewUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
@@ -82,4 +87,23 @@ func hashAndSalt(pwd []byte) (string, error) {
 	// GenerateFromPassword returns a byte slice so we need to
 	// convert the bytes to a string and return it
 	return string(hash), nil
+}
+
+func (s *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
+
+	filters := requestFilter.ToKeyValuePair()
+
+	users, err := s.repository.FindUsers(ctx, filters)
+
+	if err != nil {
+		return []entity.User{}, err
+	}
+
+	var usersCollection []entity.User
+
+	for _, u := range users {
+		usersCollection = append(usersCollection, u.ToEntity())
+	}
+
+	return usersCollection, nil
 }

@@ -17,7 +17,7 @@ type UserSchema struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty" dynamodbav:"updated_at,omitempty"`
 }
 
-func FromUser(e entity.User) UserSchema {
+func FromNewUser(e entity.User) UserSchema {
 	return UserSchema{
 		ID:        e.ID,
 		Name:      e.Name,
@@ -42,3 +42,4 @@ func (u UserSchema) ToEntity() entity.User {
 		UpdatedAt: u.UpdatedAt,
 	}
 }
+

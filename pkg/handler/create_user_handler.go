@@ -25,5 +25,5 @@ func (h *createUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	presenter.RenderResponse(w, r, http.StatusCreated, presenter.FromUser(user))
+	presenter.RenderResponse(w, r, http.StatusCreated, presenter.FromNewUser(user))
 }

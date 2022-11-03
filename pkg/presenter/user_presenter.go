@@ -2,7 +2,7 @@ package presenter
 
 import "github.com/thearyanahmed/mitte_challenge/pkg/entity"
 
-type UserResponse struct {
+type NewUserResponse struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -11,8 +11,17 @@ type UserResponse struct {
 	Gender   string `json:"gender"`
 }
 
-func FromUser(u entity.User) UserResponse {
-	return UserResponse{
+type UserResponse struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Age    int8   `json:"age"`
+	Gender string `json:"gender"`
+	// add interestes ?
+}
+
+func FromNewUser(u entity.User) NewUserResponse {
+	return NewUserResponse{
 		ID:       u.ID,
 		Name:     u.Name,
 		Email:    u.Email,
@@ -20,4 +29,22 @@ func FromUser(u entity.User) UserResponse {
 		Age:      u.Age,
 		Gender:   u.Gender,
 	}
+}
+
+func FromUser(u entity.User) UserResponse {
+	return UserResponse{
+		ID:     u.ID,
+		Name:   u.Name,
+		Email:  u.Email,
+		Age:    u.Age,
+		Gender: u.Gender,
+	}
+}
+
+func FromUsers(users []entity.User) []UserResponse {
+	result := []UserResponse{}
+	for _, u := range users {
+		result = append(result, FromUser(u))
+	}
+	return result
 }

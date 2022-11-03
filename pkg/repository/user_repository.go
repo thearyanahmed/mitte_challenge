@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -77,8 +76,6 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 		break
 	}
 
-	fmt.Println("USER", user, marshalErr)
-
 	return user, marshalErr
 }
 
@@ -103,4 +100,36 @@ func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (Use
 	}
 
 	return user, nil
+}
+
+func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]string) ([]UserSchema, error) {
+	builder := expression.NewBuilder()
+
+	for k, v := range filters {
+		builder = builder.WithFilter(expression.Name(k).Equal(expression.Value(v)))
+	}
+
+	expr, err := builder.Build()
+
+	if err != nil {
+		// @todo these should to send raw error
+		return []UserSchema{}, err
+	}
+
+	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
+		TableName:                 aws.String(users_table),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+	})
+
+	if err != nil {
+		return []UserSchema{}, err
+	}
+
+	var collection []UserSchema
+
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
+
+	return collection, err
 }
