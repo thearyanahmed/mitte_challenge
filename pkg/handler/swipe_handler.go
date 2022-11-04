@@ -25,7 +25,10 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Preference:     "yes",
 	}
 
-	// get 
+	// Store if it doesn't exist
 
+	h.swipeService.RecordSwipe(r.Context(), service.GetAuthUserId(r), swipeRequest)
+	// Check if it has a view where profile_owner_id -> myself, user_id -> profile_owner_id
+	// return response based on that.
 	fmt.Println("->", swipeRequest)
 }

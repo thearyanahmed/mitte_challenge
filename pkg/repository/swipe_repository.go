@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/google/uuid"
 )
 
 const swipes_table = "swipes"
@@ -21,11 +23,16 @@ func NewSwipeRepository(db *dynamodb.Client) *SwipeRepository {
 	}
 }
 
-func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) error {
+func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) (SwipeSchmea, error) {
+	// @todo handle in a central place
+	// a schema could be extended to have these methods
+	
+	schema.ID = uuid.New().String()
+	schema.CreatedAt = time.Now()
 	attribute, err := attributevalue.MarshalMap(schema)
 
 	if err != nil {
-		return err
+		return SwipeSchmea{}, err
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
@@ -33,7 +40,7 @@ func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) e
 		Item:      attribute,
 	})
 
-	return err
+	return schema, err
 }
 
 func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) ([]SwipeSchmea, error) {

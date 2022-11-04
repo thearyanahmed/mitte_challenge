@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +12,8 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const UserIDKey = "userId"
 
 type AuthService struct {
 	userRepository  authRepository
@@ -45,6 +48,10 @@ func (s *AuthService) ValidateToken(ctx context.Context, token string) (string, 
 	}
 
 	return tokenSchema.UserId, nil
+}
+
+func GetAuthUserId(r *http.Request) string {
+	return r.Context().Value(UserIDKey).(string)
 }
 
 func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error) {
