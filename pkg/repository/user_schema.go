@@ -14,7 +14,6 @@ type UserSchema struct {
 	Age       int8      `json:"age" dynamodbav:"age"`
 	Gender    string    `json:"gender" dynamodbav:"gender"`
 	CreatedAt time.Time `json:"created_at,omitempty" dynamodbav:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty" dynamodbav:"updated_at,omitempty"`
 }
 
 func FromNewUser(e entity.User) UserSchema {
@@ -26,7 +25,6 @@ func FromNewUser(e entity.User) UserSchema {
 		Age:       e.Age,
 		Gender:    e.Gender,
 		CreatedAt: e.CreatedAt,
-		UpdatedAt: e.UpdatedAt,
 	}
 }
 
@@ -39,7 +37,6 @@ func (u UserSchema) ToEntity() entity.User {
 		Age:       u.Age,
 		Gender:    u.Gender,
 		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
 	}
 }
 

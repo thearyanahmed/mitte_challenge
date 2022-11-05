@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"net/http"
 
@@ -26,6 +25,8 @@ func NewSwipeHandler(swipeSvc *service.SwipeService) *swipeHandler {
 	}
 }
 
+// ServeHttp
+// After validating the request, we should check if
 func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// @todo validate request
 	swipeRequest := &serializer.SwipeRequest{
@@ -55,8 +56,9 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		status = http.StatusCreated
 	}
-	// Check if it has a view where profile_owner_id -> myself, user_id -> profile_owner_id
 
+
+	// Check if it has a view where profile_owner_id -> myself, user_id -> profile_owner_id
 	authUserSwipe, authUserSwiped, err := h.swipeService.CheckIfSwipeExists(r.Context(), swipeRequest.ProfileOwnerID, authUserId)
 	if err != nil {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
@@ -69,8 +71,6 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		RecordedSwipeId: swipe.ID,
 		MatchedSwipeId:  authUserSwipe.ID,
 	}
-
-	fmt.Println(swipe, authUserSwipe)
 
 	if swiped && authUserSwiped {
 		// check preference

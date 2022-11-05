@@ -11,21 +11,27 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.With(CheckContentTypeJSON)
 
 	r.Route("/user", func(r chi.Router) {
-		r.With(CheckContentTypeJSON).Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
+		r.Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		r.With(CheckContentTypeJSON).Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
+		r.
+			Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
 	})
 
 	r.Route("/profile", func(r chi.Router) {
-		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
+		r.
+			With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
+			Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	r.Route("/swipe", func(r chi.Router) {
-		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewSwipeHandler(serviceAggregator.SwipeService).ServeHTTP)
+		r.
+			With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
+			Post("/", NewSwipeHandler(serviceAggregator.SwipeService).ServeHTTP)
 	})
 
 	return r
