@@ -9,7 +9,7 @@ type User struct {
 	Email     string
 	Password  string
 	Gender    string
-	Age       int8
+	Age       int
 	CreatedAt time.Time
 
 	Traits []UserTrait

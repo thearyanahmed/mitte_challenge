@@ -83,7 +83,6 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			response.MatchedSwipeId = authUserSwipe.ID
 		}
 
-		fmt.Println("MATCHED",matched)
 	}
 
 	fmt.Println(swipe, authUserSwipe)

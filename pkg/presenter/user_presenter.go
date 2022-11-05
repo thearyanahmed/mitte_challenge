@@ -7,7 +7,7 @@ type NewUserResponse struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Age      int8   `json:"age"`
+	Age      int   `json:"age"`
 	Gender   string `json:"gender"`
 }
 
@@ -15,7 +15,7 @@ type UserResponse struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	Email  string `json:"email"`
-	Age    int8   `json:"age"`
+	Age    int   `json:"age"`
 	Gender string `json:"gender"`
 	// add interestes ?
 }

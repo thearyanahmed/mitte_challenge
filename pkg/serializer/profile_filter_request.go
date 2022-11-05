@@ -2,6 +2,8 @@ package serializer
 
 import (
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // UserUpdateRequest represents the request for create user.
@@ -16,7 +18,7 @@ func (u *ProfileFilterRequest) Bind(r *http.Request) error {
 }
 
 func (u *ProfileFilterRequest) ToKeyValuePair() map[string]string {
-	mapped := map[string]string{}
+	mapped := make(map[string]string)
 
 	if u.Age != "" {
 		// @todo parse int
@@ -28,4 +30,21 @@ func (u *ProfileFilterRequest) ToKeyValuePair() map[string]string {
 	}
 
 	return mapped
+}
+
+func (u *ProfileFilterRequest) ToX() bson.D {
+	var filters bson.D
+
+	if u.Age != "" {
+		filters = append(filters, bsonFilter("age", u.Age)...)
+	}
+	if u.Gender != "" {
+		filters = append(filters, bsonFilter("gender", u.Gender)...)
+	}
+
+	return filters
+}
+
+func bsonFilter(key string, value string) bson.D {
+	return bson.D{{Key: key, Value: value}}
 }

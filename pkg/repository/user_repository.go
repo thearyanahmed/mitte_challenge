@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"strconv"
+
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,14 +27,14 @@ func NewUserRepository(db *mongo.Collection) *UserRepository {
 func (r *UserRepository) StoreUser(ctx context.Context, user *schema.UserSchema) (string, error) {
 	user.ID = newObjectId()
 
-	result , err := r.collection.InsertOne(ctx, user)
+	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
-		return "" , err
+		return "", err
 	}
 
-	oid, ok := result.InsertedID.(primitive.ObjectID);
+	oid, ok := result.InsertedID.(primitive.ObjectID)
 
-	if ! ok {
+	if !ok {
 		return "", errors.New("could not convert inserted id to primitive id")
 	}
 
@@ -57,7 +59,7 @@ func (r *UserRepository) FindUserById(ctx context.Context, hex string) (schema.U
 
 // FindUserByEmail @todo change returns, manage errors better
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
-	filter := bson.D{{"email", email}}
+	filter := bson.D{{Key: "email", Value: email}}
 
 	var user schema.UserSchema
 
@@ -68,20 +70,10 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (sch
 	return user, nil
 }
 
-func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (schema.UserSchema, error) {
-	return schema.UserSchema{}, errors.New("unimplemented")
-}
-
 func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
-	var filters []bson.D
+	filters := mapPropertyFilter(requestFilters)
 
-	for k, v := range requestFilters {
-		filters = append(filters, bson.D{{k,v}})
-	}
-
-	queryFilter := bson.D{{"$and", bson.A{filters}}}
-
-	cursor, err := r.collection.Find(ctx, queryFilter)
+	cursor, err := r.collection.Find(ctx, filters)
 
 	if err != nil {
 		return []schema.UserSchema{}, err
@@ -94,4 +86,18 @@ func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[strin
 	}
 
 	return results, nil
+}
+
+func mapPropertyFilter(requestFilters map[string]string) bson.M {
+	x := bson.M{}
+
+	for k, v := range requestFilters {
+		if numeric, err := strconv.Atoi(v); err == nil {
+			x[k] = numeric
+		} else {
+			x[k] = v
+		}
+	}
+
+	return x
 }

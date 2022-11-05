@@ -35,7 +35,7 @@ func (h *profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	collection, err := h.userService.GetProfiles(r.Context(), filterRequest)
 
 	if err != nil {
-		presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
 		return
 	}
 

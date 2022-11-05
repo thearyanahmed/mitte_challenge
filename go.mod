@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/ahmetcanozcan/fet v0.4.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.25 // indirect

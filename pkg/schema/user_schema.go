@@ -11,7 +11,7 @@ type UserSchema struct {
 	Name      string    `json:"name" bson:"name"`
 	Email     string    `json:"email" bson:"email"`
 	Password  string    `json:"password" bson:"password"`
-	Age       int8      `json:"age" bson:"age"`
+	Age       int      `json:"age" bson:"age"`
 	Gender    string    `json:"gender" bson:"gender"`
 	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -9,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//defaultPasswordLength would be used to create random n Length words
+// defaultPasswordLength would be used to create random n Length words
 const defaultPasswordLength = 10
 
 type UserService struct {
@@ -50,7 +51,7 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		Password: hashed,
 		Email:    gofakeit.Email(),
 		Gender:   gofakeit.Gender(),
-		Age:      int8(gofakeit.Number(1, 100)),
+		Age:      gofakeit.Number(1, 100),
 		Traits: []entity.UserTrait{
 			{
 				ID:    "12345",
