@@ -11,5 +11,17 @@ type User struct {
 	Gender    string
 	Age       int8
 	CreatedAt time.Time
+
+	Traits []UserTrait
 }
 
+
+type Trait struct {
+	ID string
+	Name string
+}
+
+type UserTrait struct {
+	ID string
+	Value int8
+}

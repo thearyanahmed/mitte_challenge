@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
-	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
 	"github.com/thearyanahmed/mitte_challenge/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,12 +21,12 @@ type AuthService struct {
 }
 
 type authRepository interface {
-	FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error)
+	FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error)
 }
 
 type tokenRepository interface {
-	StoreToken(ctx context.Context, token repository.TokenSchema) error
-	FindToken(ctx context.Context, token string) (repository.TokenSchema, error)
+	StoreToken(ctx context.Context, token schema.TokenSchema) error
+	FindToken(ctx context.Context, token string) (schema.TokenSchema, error)
 }
 
 func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService {
@@ -54,7 +54,7 @@ func GetAuthUserId(r *http.Request) string {
 	return r.Context().Value(UserIDKey).(string)
 }
 
-func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error) {
+func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
 	return s.userRepository.FindUserByEmail(ctx, email)
 }
 
@@ -80,7 +80,7 @@ func (s *AuthService) GenerateNewToken(ctx context.Context, userId string) (enti
 
 	tok := newToken(userId, randomStr)
 
-	err = s.tokenRepository.StoreToken(ctx, repository.FromToken(tok))
+	err = s.tokenRepository.StoreToken(ctx, schema.FromToken(tok))
 
 	if err != nil {
 		return entity.Token{}, err

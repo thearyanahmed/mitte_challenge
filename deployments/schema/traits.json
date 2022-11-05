@@ -1,0 +1,16 @@
+{
+    "TableName": "traits",
+    "KeySchema": [
+      {
+        "KeyType": "HASH",
+        "AttributeName": "id"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "id",
+        "AttributeType": "S"
+      }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+  }

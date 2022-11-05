@@ -1,0 +1,95 @@
+{
+  "traits": [
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "1"
+          },
+          "name": {
+            "S": "Trait A"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "2"
+          },
+          "name": {
+            "S": "Trait B"
+          }
+        }
+      }
+    },{
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "3"
+          },
+          "name": {
+            "S": "Trait C"
+          }
+        }
+      }
+    },{
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "4"
+          },
+          "name": {
+            "S": "Trait D"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "5"
+          },
+          "name": {
+            "S": "Trait E"
+          }
+        }
+      }
+    },{
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "6"
+          },
+          "name": {
+            "S": "Trait F"
+          }
+        }
+      }
+    },{
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "7"
+          },
+          "name": {
+            "S": "Trait G"
+          }
+        }
+      }
+    },{
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "S": "8"
+          },
+          "name": {
+            "S": "Trait H"
+          }
+        }
+      }
+    }
+  ]
+}

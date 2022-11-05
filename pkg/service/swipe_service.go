@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
-	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
 )
 
 type SwipeService struct {
@@ -12,9 +12,9 @@ type SwipeService struct {
 }
 
 type swipeRepository interface {
-	InsertSwipe(ctx context.Context, schema repository.SwipeSchmea) (repository.SwipeSchmea, error)
-	GetSwipesByUserId(ctx context.Context, userId string) ([]repository.SwipeSchmea, error)
-	CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (repository.SwipeSchmea, bool, error)
+	InsertSwipe(ctx context.Context, schema schema.SwipeSchema) (schema.SwipeSchema, error)
+	GetSwipesByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error)
+	CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (schema.SwipeSchema, bool, error)
 }
 
 type recordableSwipe interface {
@@ -30,7 +30,7 @@ func NewSwipeService(repo swipeRepository) *SwipeService {
 
 // RecordSwipe @todo name variables better
 func (s *SwipeService) RecordSwipe(ctx context.Context, userId string, record recordableSwipe) (entity.Swipe, error) {
-	recordSchema := repository.SwipeSchmea{
+	recordSchema := schema.SwipeSchema{
 		SwipedBy:       userId,
 		Preference:     record.GetPreference(),
 		ProfileOwnerID: record.GetProfileId(),

@@ -22,3 +22,5 @@ curl --request GET \
 	"age": "10",
     "gender": "male"
 }'
+
+aws dynamodb batch-write-item --request-items file://deployments/seed/traits.json --endpoint-url http://localhost:8000

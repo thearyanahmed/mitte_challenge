@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -23,16 +24,16 @@ func NewSwipeRepository(db *dynamodb.Client) *SwipeRepository {
 	}
 }
 
-func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) (SwipeSchmea, error) {
+func (r *SwipeRepository) InsertSwipe(ctx context.Context, schemaSchema schema.SwipeSchema) (schema.SwipeSchema, error) {
 	// @todo handle in a central place
-	// a schema could be extended to have these methods
+	// a schemaSchema could be extended to have these methods
 	
-	schema.ID = uuid.New().String()
-	schema.CreatedAt = time.Now()
-	attribute, err := attributevalue.MarshalMap(schema)
+	schemaSchema.ID = uuid.New().String()
+	schemaSchema.CreatedAt = time.Now()
+	attribute, err := attributevalue.MarshalMap(schemaSchema)
 
 	if err != nil {
-		return SwipeSchmea{}, err
+		return schema.SwipeSchema{}, err
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
@@ -40,16 +41,16 @@ func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) (
 		Item:      attribute,
 	})
 
-	return schema, err
+	return schemaSchema, err
 }
 
-func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) ([]SwipeSchmea, error) {
+func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error) {
 	filt := expression.Name("swiped_by").Equal(expression.Value(userId))
 	expr, err := expression.NewBuilder().WithFilter(filt).Build()
 
 	if err != nil {
 		// @todo these should to send raw error
-		return []SwipeSchmea{}, err
+		return []schema.SwipeSchema{}, err
 	}
 
 	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
@@ -60,17 +61,17 @@ func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) (
 	})
 
 	if err != nil {
-		return []SwipeSchmea{}, err
+		return []schema.SwipeSchema{}, err
 	}
 
-	var collection []SwipeSchmea
+	var collection []schema.SwipeSchema
 
 	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
 
 	return collection, err
 }
 
-func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (SwipeSchmea, bool, error) {
+func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (schema.SwipeSchema, bool, error) {
 
 	expr, err := expression.NewBuilder().WithFilter(
 		expression.And(
@@ -79,7 +80,7 @@ func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profile
 		).Build()
 
 	if err != nil {
-		return SwipeSchmea{}, false, nil
+		return schema.SwipeSchema{}, false, nil
 	}
 
 	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
@@ -90,14 +91,14 @@ func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profile
 	})
 
 	if err != nil {
-		return SwipeSchmea{}, false, nil
+		return schema.SwipeSchema{}, false, nil
 	}
 
 	if result.Count < 1 {
-		return SwipeSchmea{}, false, nil
+		return schema.SwipeSchema{}, false, nil
 	}
 
-	swipe := SwipeSchmea{}
+	swipe := schema.SwipeSchema{}
 
 	for _, v := range result.Items {
 		err = attributevalue.UnmarshalMap(v, &swipe)
@@ -105,7 +106,7 @@ func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profile
 	}
 
 	if err != nil {
-		return SwipeSchmea{}, false, nil
+		return schema.SwipeSchema{}, false, nil
 	}
 
 	return swipe, true, nil

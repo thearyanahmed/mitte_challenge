@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -24,7 +25,7 @@ func NewUserRepository(db *dynamodb.Client) *UserRepository {
 	}
 }
 
-func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
+func (r *UserRepository) StoreUser(ctx context.Context, user schema.UserSchema) error {
 	attribute, err := attributevalue.MarshalMap(user)
 
 	if err != nil {
@@ -39,18 +40,18 @@ func (r *UserRepository) StoreUser(ctx context.Context, user UserSchema) error {
 	return err
 }
 
-func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchema, error) {
+func (r *UserRepository) FindUserById(ctx context.Context, id string) (schema.UserSchema, error) {
 	return r.findUserBy(ctx, "id", id)
 }
 
 // FindUserByEmail @todo change returns, manage errors better
-func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
 	filt := expression.Name("email").Equal(expression.Value(email))
 	expr, err := expression.NewBuilder().WithFilter(filt).Build()
 
 	if err != nil {
 		// @todo these should to send raw error
-		return UserSchema{}, err
+		return schema.UserSchema{}, err
 	}
 
 	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
@@ -61,14 +62,14 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 	})
 
 	if err != nil {
-		return UserSchema{}, err
+		return schema.UserSchema{}, err
 	}
 
 	if result.Count < 1 {
-		return UserSchema{}, errors.New("no records found")
+		return schema.UserSchema{}, errors.New("no records found")
 	}
 
-	user := UserSchema{}
+	user := schema.UserSchema{}
 
 	var marshalErr error
 	for _, v := range result.Items {
@@ -79,7 +80,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (Use
 	return user, marshalErr
 }
 
-func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (UserSchema, error) {
+func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (schema.UserSchema, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(users_table),
 		Key: map[string]types.AttributeValue{
@@ -88,21 +89,21 @@ func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (Use
 	})
 
 	if err != nil {
-		return UserSchema{}, err
+		return schema.UserSchema{}, err
 	}
 
-	user := UserSchema{}
+	user := schema.UserSchema{}
 
 	err = attributevalue.UnmarshalMap(result.Item, &user)
 
 	if err != nil {
-		return UserSchema{}, err
+		return schema.UserSchema{}, err
 	}
 
 	return user, nil
 }
 
-func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]string) ([]UserSchema, error) {
+func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error) {
 	builder := expression.NewBuilder()
 
 	for k, v := range filters {
@@ -113,7 +114,7 @@ func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]strin
 
 	if err != nil {
 		// @todo these should to send raw error
-		return []UserSchema{}, err
+		return []schema.UserSchema{}, err
 	}
 
 	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
@@ -124,10 +125,10 @@ func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]strin
 	})
 
 	if err != nil {
-		return []UserSchema{}, err
+		return []schema.UserSchema{}, err
 	}
 
-	var collection []UserSchema
+	var collection []schema.UserSchema
 
 	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
 

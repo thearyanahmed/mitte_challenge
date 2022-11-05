@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
-	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,10 +24,10 @@ type RequestFilter interface {
 // UserRepository the bridge between db and service layer
 // context is passed from the handler layer, from the request context
 type UserRepository interface {
-	StoreUser(context.Context, repository.UserSchema) error
-	FindUserById(context.Context, string) (repository.UserSchema, error)
-	FindUserByEmail(ctx context.Context, email string) (repository.UserSchema, error)
-	FindUsers(ctx context.Context, filters map[string]string) ([]repository.UserSchema, error)
+	StoreUser(context.Context, schema.UserSchema) error
+	FindUserById(context.Context, string) (schema.UserSchema, error)
+	FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error)
+	FindUsers(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error)
 }
 
 func NewUserService(repo UserRepository) *UserService {
@@ -52,9 +52,23 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		Email:    gofakeit.Email(),
 		Gender:   gofakeit.Gender(),
 		Age:      int8(gofakeit.Number(1, 100)),
+		Traits: []entity.UserTrait{
+			{
+				ID:    "12345",
+				Value: 61,
+			},
+			{
+				ID:    "12346",
+				Value: 96,
+			},
+			{
+				ID:    "12347",
+				Value: 58,
+			},
+		},
 	}
 
-	err = u.repository.StoreUser(ctx, repository.FromNewUser(usr))
+	err = u.repository.StoreUser(ctx, schema.FromNewUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
@@ -90,17 +104,14 @@ func hashAndSalt(pwd []byte) (string, error) {
 }
 
 func (u *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
-
 	filters := requestFilter.ToKeyValuePair()
 
 	users, err := u.repository.FindUsers(ctx, filters)
-
 	if err != nil {
 		return []entity.User{}, err
 	}
 
 	var usersCollection []entity.User
-
 	for _, u := range users {
 		usersCollection = append(usersCollection, u.ToEntity())
 	}

@@ -1,4 +1,4 @@
-package repository
+package schema
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 )
 
-type SwipeSchmea struct {
+type SwipeSchema struct {
 	ID       string `json:"id" dynamodbav:"id"`
 	SwipedBy string `json:"swiped_by" dynamodbav:"swiped_by"`
 
@@ -16,7 +16,7 @@ type SwipeSchmea struct {
 	CreatedAt      time.Time `json:"created_at,omitempty" dynamodbav:"created_at"`
 }
 
-func (s SwipeSchmea) ToEntity() entity.Swipe {
+func (s SwipeSchema) ToEntity() entity.Swipe {
 	return entity.Swipe{
 		ID:             s.ID,
 		SwipedBy:       s.SwipedBy,

@@ -1,4 +1,4 @@
-package repository
+package schema
 
 import (
 	"time"

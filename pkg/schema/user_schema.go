@@ -1,11 +1,10 @@
-package repository
+package schema
 
 import (
 	"time"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 )
-
 type UserSchema struct {
 	ID        string    `json:"id" dynamodbav:"id"`
 	Name      string    `json:"name" dynamodbav:"name"`
@@ -14,6 +13,8 @@ type UserSchema struct {
 	Age       int8      `json:"age" dynamodbav:"age"`
 	Gender    string    `json:"gender" dynamodbav:"gender"`
 	CreatedAt time.Time `json:"created_at,omitempty" dynamodbav:"created_at,omitempty"`
+
+	Traits []UserTraitSchema `json:"traits" dynamodbav:"traits"`
 }
 
 func FromNewUser(e entity.User) UserSchema {
@@ -25,7 +26,22 @@ func FromNewUser(e entity.User) UserSchema {
 		Age:       e.Age,
 		Gender:    e.Gender,
 		CreatedAt: e.CreatedAt,
+		Traits:    attributesEntityToSchemaCollection(e.Traits),
 	}
+}
+
+// todo find a better name
+func attributesEntityToSchemaCollection(data []entity.UserTrait) []UserTraitSchema {
+	var collection []UserTraitSchema
+
+	for _, attr := range data {
+		collection = append(collection, UserTraitSchema{
+			ID:    attr.ID,
+			Value: attr.Value,
+		})
+	}
+
+	return collection
 }
 
 func (u UserSchema) ToEntity() entity.User {
@@ -39,4 +55,3 @@ func (u UserSchema) ToEntity() entity.User {
 		CreatedAt: u.CreatedAt,
 	}
 }
-
