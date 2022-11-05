@@ -9,15 +9,10 @@ import (
 
 	"github.com/joho/godotenv"
 
-	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
 	"github.com/thearyanahmed/mitte_challenge/pkg/config"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
 	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
-)
-
-var (
-	chiLambda *chiadapter.ChiLambda
 )
 
 func main() {
@@ -36,6 +31,8 @@ func main() {
 	aggregator := service.NewServiceAggregator(db)
 	r := routeHandler.SetupRouter(aggregator)
 
+	// todo add concurrency, use wait groups
+	// make sure to add them inside lambda as well
 	if err = platform.WaitForDB(context.Background(), db, "users"); err != nil {
 		log.Fatal(err)
 	}
