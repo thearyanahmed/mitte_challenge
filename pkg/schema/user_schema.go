@@ -1,25 +1,25 @@
 package schema
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 )
 type UserSchema struct {
-	ID        string    `json:"id" dynamodbav:"id"`
-	Name      string    `json:"name" dynamodbav:"name"`
-	Email     string    `json:"email" dynamodbav:"email"`
-	Password  string    `json:"password" dynamodbav:"password"`
-	Age       int8      `json:"age" dynamodbav:"age"`
-	Gender    string    `json:"gender" dynamodbav:"gender"`
-	CreatedAt time.Time `json:"created_at,omitempty" dynamodbav:"created_at,omitempty"`
+	ID        primitive.ObjectID    `json:"id" bson:"_id"`
+	Name      string    `json:"name" bson:"name"`
+	Email     string    `json:"email" bson:"email"`
+	Password  string    `json:"password" bson:"password"`
+	Age       int8      `json:"age" bson:"age"`
+	Gender    string    `json:"gender" bson:"gender"`
+	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 
-	Traits []UserTraitSchema `json:"traits" dynamodbav:"traits"`
+	Traits []UserTraitSchema `json:"traits" bson:"traits"`
 }
 
-func FromNewUser(e entity.User) UserSchema {
-	return UserSchema{
-		ID:        e.ID,
+func FromNewUser(e entity.User) *UserSchema {
+	schema := UserSchema{
 		Name:      e.Name,
 		Email:     e.Email,
 		Password:  e.Password,
@@ -28,6 +28,13 @@ func FromNewUser(e entity.User) UserSchema {
 		CreatedAt: e.CreatedAt,
 		Traits:    attributesEntityToSchemaCollection(e.Traits),
 	}
+
+	if e.ID != "" {
+		id, _ := primitive.ObjectIDFromHex(e.ID)
+		schema.ID = id
+	}
+
+	return &schema
 }
 
 // todo find a better name
@@ -46,7 +53,7 @@ func attributesEntityToSchemaCollection(data []entity.UserTrait) []UserTraitSche
 
 func (u UserSchema) ToEntity() entity.User {
 	return entity.User{
-		ID:        u.ID,
+		ID:        u.ID.Hex(),
 		Name:      u.Name,
 		Email:     u.Email,
 		Password:  u.Password,

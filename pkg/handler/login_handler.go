@@ -44,7 +44,7 @@ func (h *loginHanlder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.authService.GenerateNewToken(r.Context(), user.ID)
+	token, err := h.authService.GenerateNewToken(r.Context(), user.ID.Hex())
 
 	if err != nil {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))

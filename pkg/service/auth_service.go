@@ -58,7 +58,7 @@ func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (schema
 	return s.userRepository.FindUserByEmail(ctx, email)
 }
 
-// @todo hashing can live in it's own service
+// ComparePassword @todo hashing can live in it's own service
 func (s *AuthService) ComparePassword(hashedPwd string, plainPwd []byte) bool {
 	// Since we'll be getting the hashed password from the DB it
 	// will be a string so we'll need to convert it to a byte slice

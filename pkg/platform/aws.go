@@ -2,6 +2,9 @@ package platform
 
 import (
 	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -15,6 +18,24 @@ import (
 
 func Serve(handler interface{}) {
 	lambda.Start(handler)
+}
+
+func ConnectToMongo() (*mongo.Client, *mongo.Database, error){
+	// @todo make it dynamic, use .env?
+	uri := "mongodb://db:27017"
+	db := "app_2"
+
+	// @todo context.Todo()?
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+
+	if err != nil {
+		fmt.Println("ERRRROR",err)
+		return nil, nil, err
+	}
+
+	database := client.Database(db)
+
+	return client, database, nil
 }
 
 func CreateDbConnection(accessKeyId, secretAccessKeyId, token, region, endpoint string) (*dynamodb.Client, error) {

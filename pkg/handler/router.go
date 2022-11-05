@@ -6,11 +6,11 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
-func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
+func SetupRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	//r.Use(middleware.Recoverer)
 	r.With(CheckContentTypeJSON)
 
 	r.Route("/user", func(r chi.Router) {

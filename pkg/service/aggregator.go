@@ -1,27 +1,27 @@
 package service
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ServiceAggregator struct {
+type Aggregator struct {
 	*UserService
 	*AuthService
 	*SwipeService
 }
 
-func NewServiceAggregator(db *dynamodb.Client) *ServiceAggregator {
-	userRepo := repository.NewUserRepository(db)
+func NewServiceAggregator(db *mongo.Database) *Aggregator {
+	userRepo := repository.NewUserRepository(db.Collection(repository.UsersCollection))
 	userSvc := NewUserService(userRepo)
 
-	tokenRepository := repository.NewTokenRepository(db)
+	tokenRepository := repository.NewTokenRepository(db.Collection(repository.TokensCollection))
 	authSvc := NewAuthService(userRepo, tokenRepository)
 
-	swipeRepo := repository.NewSwipeRepository(db)
+	swipeRepo := repository.NewSwipeRepository(db.Collection(repository.SwipesCollection))
 	swipeSvc := NewSwipeService(swipeRepo)
 
-	return &ServiceAggregator{
+	return &Aggregator{
 		UserService:  userSvc,
 		AuthService:  authSvc,
 		SwipeService: swipeSvc,

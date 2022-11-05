@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -24,7 +23,7 @@ type RequestFilter interface {
 // UserRepository the bridge between db and service layer
 // context is passed from the handler layer, from the request context
 type UserRepository interface {
-	StoreUser(context.Context, schema.UserSchema) error
+	StoreUser(context.Context, *schema.UserSchema) (newlyCreatedId string, err error)
 	FindUserById(context.Context, string) (schema.UserSchema, error)
 	FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error)
 	FindUsers(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error)
@@ -46,7 +45,7 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 	}
 
 	usr := entity.User{
-		ID:       uuid.New().String(),
+		//ID:       uuid.New().String(),
 		Name:     gofakeit.Name(),
 		Password: hashed,
 		Email:    gofakeit.Email(),
@@ -68,12 +67,13 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		},
 	}
 
-	err = u.repository.StoreUser(ctx, schema.FromNewUser(usr))
+	newlyCreatedId, err := u.repository.StoreUser(ctx, schema.FromNewUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
 	}
 
+	usr.ID = newlyCreatedId
 	// fetch the user
 	createdUser, err := u.repository.FindUserById(ctx, usr.ID)
 	if err != nil {

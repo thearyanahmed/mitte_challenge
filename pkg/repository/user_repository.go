@@ -4,133 +4,94 @@ import (
 	"context"
 	"errors"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
-
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go/aws"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const users_table = "users"
+const UsersCollection = "users"
 
 // UserRepository represents the user repository that communicates with the database.
 type UserRepository struct {
-	db *dynamodb.Client
+	collection *mongo.Collection
 }
 
-func NewUserRepository(db *dynamodb.Client) *UserRepository {
+func NewUserRepository(db *mongo.Collection) *UserRepository {
 	return &UserRepository{
-		db: db,
+		collection: db,
 	}
 }
 
-func (r *UserRepository) StoreUser(ctx context.Context, user schema.UserSchema) error {
-	attribute, err := attributevalue.MarshalMap(user)
+func (r *UserRepository) StoreUser(ctx context.Context, user *schema.UserSchema) (string, error) {
+	user.ID = newObjectId()
 
+	result , err := r.collection.InsertOne(ctx, user)
 	if err != nil {
-		return err
+		return "" , err
 	}
 
-	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(users_table),
-		Item:      attribute,
-	})
+	oid, ok := result.InsertedID.(primitive.ObjectID);
 
-	return err
-}
-
-func (r *UserRepository) FindUserById(ctx context.Context, id string) (schema.UserSchema, error) {
-	return r.findUserBy(ctx, "id", id)
-}
-
-// FindUserByEmail @todo change returns, manage errors better
-func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
-	filt := expression.Name("email").Equal(expression.Value(email))
-	expr, err := expression.NewBuilder().WithFilter(filt).Build()
-
-	if err != nil {
-		// @todo these should to send raw error
-		return schema.UserSchema{}, err
+	if ! ok {
+		return "", errors.New("could not convert inserted id to primitve id")
 	}
 
-	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:                 aws.String(users_table),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-	})
+	return oid.Hex(), nil
+}
+
+func (r *UserRepository) FindUserById(ctx context.Context, hex string) (schema.UserSchema, error) {
+	objectId, err := primitive.ObjectIDFromHex(hex)
 
 	if err != nil {
 		return schema.UserSchema{}, err
 	}
 
-	if result.Count < 1 {
-		return schema.UserSchema{}, errors.New("no records found")
-	}
+	var user schema.UserSchema
 
-	user := schema.UserSchema{}
-
-	var marshalErr error
-	for _, v := range result.Items {
-		marshalErr = attributevalue.UnmarshalMap(v, &user)
-		break
-	}
-
-	return user, marshalErr
-}
-
-func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (schema.UserSchema, error) {
-	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(users_table),
-		Key: map[string]types.AttributeValue{
-			key: &types.AttributeValueMemberS{Value: value},
-		},
-	})
-
-	if err != nil {
-		return schema.UserSchema{}, err
-	}
-
-	user := schema.UserSchema{}
-
-	err = attributevalue.UnmarshalMap(result.Item, &user)
-
-	if err != nil {
-		return schema.UserSchema{}, err
+	if err := r.collection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&user); err != nil {
+		return schema.UserSchema{}, nil
 	}
 
 	return user, nil
 }
 
-func (r *UserRepository) FindUsers(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error) {
-	builder := expression.NewBuilder()
+// FindUserByEmail @todo change returns, manage errors better
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
+	filter := bson.D{{"email", email}}
 
-	for k, v := range filters {
-		builder = builder.WithFilter(expression.Name(k).Equal(expression.Value(v)))
+	var user schema.UserSchema
+
+	if err := r.collection.FindOne(ctx, filter).Decode(&user); err != nil {
+		return schema.UserSchema{}, nil
 	}
 
-	expr, err := builder.Build()
+	return user, nil
+}
+
+func (r *UserRepository) findUserBy(ctx context.Context, key, value string) (schema.UserSchema, error) {
+	return schema.UserSchema{}, errors.New("unimplemented")
+}
+
+func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
+	var filters []bson.D
+
+	for k, v := range requestFilters {
+		filters = append(filters, bson.D{{k,v}})
+	}
+
+	queryFilter := bson.D{{"$and", bson.A{filters}}}
+
+	cursor, err := r.collection.Find(ctx, queryFilter)
 
 	if err != nil {
-		// @todo these should to send raw error
 		return []schema.UserSchema{}, err
 	}
 
-	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:                 aws.String(users_table),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-	})
+	var results []schema.UserSchema
 
-	if err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return []schema.UserSchema{}, err
 	}
 
-	var collection []schema.UserSchema
-
-	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
-
-	return collection, err
+	return results, nil
 }

@@ -3,111 +3,79 @@ package repository
 import (
 	"context"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/google/uuid"
 )
 
-const swipesTable = "swipes"
+const SwipesCollection = "swipes"
 
 type SwipeRepository struct {
-	db *dynamodb.Client
+	collection *mongo.Collection
 }
 
-func NewSwipeRepository(db *dynamodb.Client) *SwipeRepository {
+func NewSwipeRepository(db *mongo.Collection) *SwipeRepository {
 	return &SwipeRepository{
-		db: db,
+		collection: db,
 	}
 }
 
-func (r *SwipeRepository) InsertSwipe(ctx context.Context, schemaSchema schema.SwipeSchema) (schema.SwipeSchema, error) {
-	// @todo handle in a central place
-	// a schemaSchema could be extended to have these methods
-	
-	schemaSchema.ID = uuid.New().String()
-	schemaSchema.CreatedAt = time.Now()
-	attribute, err := attributevalue.MarshalMap(schemaSchema)
+func (r *SwipeRepository) InsertSwipe(ctx context.Context, swipe schema.SwipeSchema) (schema.SwipeSchema, error) {
+	swipe.CreatedAt = time.Now()
+
+	result , err := r.collection.InsertOne(ctx, swipe)
 
 	if err != nil {
 		return schema.SwipeSchema{}, err
 	}
 
-	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(swipesTable),
-		Item:      attribute,
-	})
+	oid, ok := result.InsertedID.(primitive.ObjectID)
 
-	return schemaSchema, err
+	if !ok {
+		return schema.SwipeSchema{}, err
+	}
+
+	swipe.ID = oid
+
+	return swipe, err
 }
 
 func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error) {
-	filt := expression.Name("swiped_by").Equal(expression.Value(userId))
-	expr, err := expression.NewBuilder().WithFilter(filt).Build()
+	filter := bson.D{{"swiped_by", userId}}
 
-	if err != nil {
-		// @todo these should to send raw error
-		return []schema.SwipeSchema{}, err
-	}
-
-	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:                 aws.String(swipesTable),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-	})
+	cursor, err := r.collection.Find(ctx, filter)
 
 	if err != nil {
 		return []schema.SwipeSchema{}, err
 	}
 
-	var collection []schema.SwipeSchema
+	var results []schema.SwipeSchema
 
-	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
+	if err = cursor.All(ctx, &results); err != nil {
+		return []schema.SwipeSchema{}, err
+	}
 
-	return collection, err
+	return results, nil
 }
 
-func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (schema.SwipeSchema, bool, error) {
+func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, swipedById, profileOwnerId string) (schema.SwipeSchema, bool, error) {
+	filters := bson.D{
+		{"$and",
+			bson.A{
+				bson.D{{"swiped_by", swipedById}},
+				bson.D{{"profile_owner_id", profileOwnerId}},
+			}},
+	}
 
-	expr, err := expression.NewBuilder().WithFilter(
-		expression.And(
-			expression.Name("swiped_by").Equal(expression.Value(userId)),
-			expression.Name("profile_owner_id").Equal(expression.Value(profileOwnerId))),
-		).Build()
+	queryFilter := bson.D{{"$and", bson.A{filters}}}
+
+	var result schema.SwipeSchema
+	err := r.collection.FindOne(ctx, queryFilter).Decode(&result)
 
 	if err != nil {
-		return schema.SwipeSchema{}, false, nil
+		return schema.SwipeSchema{}, false, err
 	}
 
-	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:                 aws.String(swipesTable),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-	})
-
-	if err != nil {
-		return schema.SwipeSchema{}, false, nil
-	}
-
-	if result.Count < 1 {
-		return schema.SwipeSchema{}, false, nil
-	}
-
-	swipe := schema.SwipeSchema{}
-
-	for _, v := range result.Items {
-		err = attributevalue.UnmarshalMap(v, &swipe)
-		break
-	}
-
-	if err != nil {
-		return schema.SwipeSchema{}, false, nil
-	}
-
-	return swipe, true, nil
+	return result, true, nil
 }
