@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"net/http"
 
@@ -30,11 +31,14 @@ func NewSwipeHandler(swipeSvc *service.SwipeService) *swipeHandler {
 func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// @todo validate request
 	swipeRequest := &serializer.SwipeRequest{
-		ProfileOwnerID: "123-123-123",
+		ProfileOwnerID: "636653d3548c4498f61843e6",
 		Preference:     "yes",
 	}
 
+	// @todo check if new user id and auth id is same or not
 	authUserId := service.GetAuthUserId(r)
+
+	fmt.Println("AUTH USER ID", authUserId)
 
 	swipe, swiped, err := h.swipeService.CheckIfSwipeExists(r.Context(), authUserId, swipeRequest.ProfileOwnerID)
 
@@ -57,7 +61,6 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusCreated
 	}
 
-
 	// Check if it has a view where profile_owner_id -> myself, user_id -> profile_owner_id
 	authUserSwipe, authUserSwiped, err := h.swipeService.CheckIfSwipeExists(r.Context(), swipeRequest.ProfileOwnerID, authUserId)
 	if err != nil {
@@ -69,13 +72,29 @@ func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Message:         "swipe recorded",
 		Matched:         false,
 		RecordedSwipeId: swipe.ID,
-		MatchedSwipeId:  authUserSwipe.ID,
 	}
 
 	if swiped && authUserSwiped {
 		// check preference
-		response.Matched = swipe.Preference == "yes" && authUserSwipe.Preference == "yes"
+		matched := matched(swipe.Preference, authUserSwipe.Preference)
+		response.Matched = matched
+
+		if matched {
+			response.MatchedSwipeId = authUserSwipe.ID
+		}
+
+		fmt.Println("MATCHED",matched)
 	}
 
+	fmt.Println(swipe, authUserSwipe)
+
 	presenter.RenderResponse(w,r, status, response)
+}
+
+func matched(a,b string) bool {
+	if a == b && a == "yes" {
+		return true
+	}
+
+	return false
 }

@@ -11,6 +11,7 @@ services:
 #    working_dir: /home/dynamodblocal
   db:
     image: mongo:latest
+    container_name: db
     ports:
       - "27017:27017"
     volumes:

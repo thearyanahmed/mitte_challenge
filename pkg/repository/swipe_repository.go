@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
@@ -23,20 +22,13 @@ func NewSwipeRepository(db *mongo.Collection) *SwipeRepository {
 
 func (r *SwipeRepository) InsertSwipe(ctx context.Context, swipe schema.SwipeSchema) (schema.SwipeSchema, error) {
 	swipe.CreatedAt = time.Now()
+	swipe.ID = newObjectId()
 
-	result , err := r.collection.InsertOne(ctx, swipe)
+	_ , err := r.collection.InsertOne(ctx, swipe)
 
 	if err != nil {
 		return schema.SwipeSchema{}, err
 	}
-
-	oid, ok := result.InsertedID.(primitive.ObjectID)
-
-	if !ok {
-		return schema.SwipeSchema{}, err
-	}
-
-	swipe.ID = oid
 
 	return swipe, err
 }
@@ -74,6 +66,10 @@ func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, swipedById, pro
 	err := r.collection.FindOne(ctx, queryFilter).Decode(&result)
 
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// This error means your query did not match any documents.
+			return schema.SwipeSchema{}, false, nil
+		}
 		return schema.SwipeSchema{}, false, err
 	}
 

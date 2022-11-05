@@ -8,7 +8,7 @@ import (
 )
 
 type SwipeSchema struct {
-	ID       primitive.ObjectID `json:"id" bson:"id"`
+	ID       primitive.ObjectID `json:"id" bson:"_id"`
 	SwipedBy string `json:"swiped_by" bson:"swiped_by"`
 
 	// the other user's id

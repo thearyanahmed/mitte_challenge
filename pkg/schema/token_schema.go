@@ -8,7 +8,7 @@ import (
 )
 
 type TokenSchema struct {
-	ID        primitive.ObjectID    `json:"id" bson:"id"`
+	ID        primitive.ObjectID    `json:"id" bson:"_id"`
 	UserId    string    `json:"user_id" bson:"user_id"`
 	Token     string    `json:"token" bson:"token"`
 	Revoked   bool      `json:"revoked" bson:"revoked"` // use 1 or 0

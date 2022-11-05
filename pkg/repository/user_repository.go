@@ -33,7 +33,7 @@ func (r *UserRepository) StoreUser(ctx context.Context, user *schema.UserSchema)
 	oid, ok := result.InsertedID.(primitive.ObjectID);
 
 	if ! ok {
-		return "", errors.New("could not convert inserted id to primitve id")
+		return "", errors.New("could not convert inserted id to primitive id")
 	}
 
 	return oid.Hex(), nil

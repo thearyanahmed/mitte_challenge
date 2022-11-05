@@ -13,8 +13,8 @@ func init() {
 }
 
 type TraitsSchema struct {
-	ID string `json:"id" dynamodbav:"id"`
-	Name string `json:"name"  dynamodbav:"name"`
+	ID string `json:"id" bson:"_id"`
+	Name string `json:"name"  bson:"name"`
 }
 
 
