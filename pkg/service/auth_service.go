@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 	"github.com/thearyanahmed/mitte_challenge/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -61,7 +60,7 @@ func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (schema
 // ComparePassword @todo hashing can live in it's own service
 func (s *AuthService) ComparePassword(hashedPwd string, plainPwd []byte) bool {
 	// Since we'll be getting the hashed password from the DB it
-	// will be a string so we'll need to convert it to a byte slice
+	// will be a string, so we'll need to convert it to a byte slice
 	byteHash := []byte(hashedPwd)
 	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
 	if err != nil {
@@ -91,7 +90,7 @@ func (s *AuthService) GenerateNewToken(ctx context.Context, userId string) (enti
 
 func newToken(userId, token string) entity.Token {
 	return entity.Token{
-		ID:        uuid.New().String(),
+		//ID:        uuid.New().String(),
 		UserId:    userId,
 		Token:     token,
 		Revoked:   false,
