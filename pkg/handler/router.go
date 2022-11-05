@@ -25,7 +25,7 @@ func SetupRouter(serviceAggregator *service.ServiceAggregator) *chi.Mux {
 	})
 
 	r.Route("/swipe", func(r chi.Router) {
-		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewSwipeHanlder(serviceAggregator.SwipeService).ServeHTTP)
+		r.With(CheckContentTypeJSON).With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).Post("/", NewSwipeHandler(serviceAggregator.SwipeService).ServeHTTP)
 	})
 
 	return r

@@ -2,14 +2,15 @@ package service
 
 import (
 	"context"
+	"github.com/google/uuid"
 
 	"github.com/brianvoe/gofakeit/v6"
-	"github.com/google/uuid"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 	"github.com/thearyanahmed/mitte_challenge/pkg/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
+//defaultPasswordLength would be used to create random n Length words
 const defaultPasswordLength = 10
 
 type UserService struct {
@@ -35,9 +36,8 @@ func NewUserService(repo UserRepository) *UserService {
 	}
 }
 
-// CreateRandomUser
 func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error) {
-	randomStr := "secret" // createRandomString(defaultPasswordLenght)
+	randomStr := "secret" // createRandomString(defaultPasswordLength)
 
 	hashed, err := hashAndSalt([]byte(randomStr))
 
@@ -84,16 +84,16 @@ func hashAndSalt(pwd []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// GenerateFromPassword returns a byte slice so we need to
+	// GenerateFromPassword returns a byte slice, so we need to
 	// convert the bytes to a string and return it
 	return string(hash), nil
 }
 
-func (s *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
+func (u *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
 
 	filters := requestFilter.ToKeyValuePair()
 
-	users, err := s.repository.FindUsers(ctx, filters)
+	users, err := u.repository.FindUsers(ctx, filters)
 
 	if err != nil {
 		return []entity.User{}, err

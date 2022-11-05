@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const swipes_table = "swipes"
+const swipesTable = "swipes"
 
 type SwipeRepository struct {
 	db *dynamodb.Client
@@ -36,7 +36,7 @@ func (r *SwipeRepository) InsertSwipe(ctx context.Context, schema SwipeSchmea) (
 	}
 
 	_, err = r.db.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(swipes_table),
+		TableName: aws.String(swipesTable),
 		Item:      attribute,
 	})
 
@@ -53,7 +53,7 @@ func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) (
 	}
 
 	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:                 aws.String(swipes_table),
+		TableName:                 aws.String(swipesTable),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
@@ -68,4 +68,45 @@ func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) (
 	err = attributevalue.UnmarshalListOfMaps(result.Items, &collection)
 
 	return collection, err
+}
+
+func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (SwipeSchmea, bool, error) {
+
+	expr, err := expression.NewBuilder().WithFilter(
+		expression.And(
+			expression.Name("swiped_by").Equal(expression.Value(userId)),
+			expression.Name("profile_owner_id").Equal(expression.Value(profileOwnerId))),
+		).Build()
+
+	if err != nil {
+		return SwipeSchmea{}, false, nil
+	}
+
+	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
+		TableName:                 aws.String(swipesTable),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+	})
+
+	if err != nil {
+		return SwipeSchmea{}, false, nil
+	}
+
+	if result.Count < 1 {
+		return SwipeSchmea{}, false, nil
+	}
+
+	swipe := SwipeSchmea{}
+
+	for _, v := range result.Items {
+		err = attributevalue.UnmarshalMap(v, &swipe)
+		break
+	}
+
+	if err != nil {
+		return SwipeSchmea{}, false, nil
+	}
+
+	return swipe, true, nil
 }

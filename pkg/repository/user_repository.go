@@ -43,7 +43,7 @@ func (r *UserRepository) FindUserById(ctx context.Context, id string) (UserSchem
 	return r.findUserBy(ctx, "id", id)
 }
 
-// @todo change returns, manage errors better
+// FindUserByEmail @todo change returns, manage errors better
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (UserSchema, error) {
 	filt := expression.Name("email").Equal(expression.Value(email))
 	expr, err := expression.NewBuilder().WithFilter(filt).Build()
