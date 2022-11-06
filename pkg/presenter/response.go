@@ -81,7 +81,7 @@ func ErrorInternal(err error) *ErrorResponse {
 
 // ErrorValidationFailed returns an error response for validation failed.
 func ErrorValidationFailed(err error) *ErrorResponse {
-	details := []ErrorDetail{}
+	var details []ErrorDetail
 	for _, err := range err.(validator.ValidationErrors) {
 		details = append(details, ErrorDetail{
 			Path:    err.Field(),

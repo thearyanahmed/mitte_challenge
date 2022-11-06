@@ -28,7 +28,7 @@ func (h *profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// validate request
 	if err := serializer.NewValidator().Struct(filterRequest); err != nil {
-		_ = presenter.RenderErrorResponse(w, r, presenter.ErrorValidationFailed(err))
+		_ = presenter.RenderErrorResponse(w, r, presenter.	ErrorValidationFailed(err))
 		return
 	}
 
