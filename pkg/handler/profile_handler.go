@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/go-chi/render"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"github.com/thearyanahmed/mitte_challenge/pkg/serializer"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
@@ -21,14 +21,22 @@ func NewProfileHandler(userSvc *service.UserService) *profileHandler {
 
 func (h *profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	filterRequest := &serializer.ProfileFilterRequest{}
-	if err := render.Bind(r, filterRequest); err != nil {
-		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
-		return
-	}
+	//if err := render.Bind(r, filterRequest); err != nil {
+	//	_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+	//	return
+	//}
+	//
+	//// validate request
+	//if err := serializer.NewValidator().Struct(filterRequest); err != nil {
+	//	_ = presenter.RenderErrorResponse(w, r, presenter.	ErrorValidationFailed(err))
+	//	return
+	//}
+	//
 
-	// validate request
-	if err := serializer.NewValidator().Struct(filterRequest); err != nil {
-		_ = presenter.RenderErrorResponse(w, r, presenter.	ErrorValidationFailed(err))
+	requestErrors := serializer.ValidateRequest(r,filterRequest)
+
+	if len(requestErrors) > 0 {
+		fmt.Println(requestErrors)
 		return
 	}
 

@@ -2,14 +2,34 @@ package serializer
 
 import (
 	"net/http"
+	"net/url"
 
+	saddamValidator "github.com/thedevsaddam/govalidator"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// UserUpdateRequest represents the request for create user.
+// ProfileFilterRequest represents the request for create user.
 type ProfileFilterRequest struct {
 	Age    string `json:"age" validate:"numeric,omitempty"`
 	Gender string `json:"gender" validate:"omitempty,oneof=male female"`
+}
+
+func ValidateRequest(r *http.Request, requestStruct interface{}) url.Values {
+	rules := saddamValidator.MapData{
+		"gender": []string{"in:male,female"},
+		"age":    []string{"numeric"},
+	}
+
+	opts := saddamValidator.Options{
+		Request: r,
+		Data:    &requestStruct,
+		Rules:   rules,
+	}
+
+	v := saddamValidator.New(opts)
+	e := v.ValidateJSON()
+
+	return e
 }
 
 // Bind only implements interface contract.
