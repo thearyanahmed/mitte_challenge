@@ -7,17 +7,17 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
-type createUserHandler struct {
+type CreateUserHandler struct {
 	service *service.UserService
 }
 
-func NewCreateUserHandler(service *service.UserService) *createUserHandler {
-	return &createUserHandler{
+func NewCreateUserHandler(service *service.UserService) *CreateUserHandler {
+	return &CreateUserHandler{
 		service: service,
 	}
 }
 
-func (h *createUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.CreateRandomUser(r.Context())
 
 	if err != nil {

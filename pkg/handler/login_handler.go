@@ -8,17 +8,17 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
-type loginHandler struct {
+type LoginHandler struct {
 	authService *service.AuthService
 }
 
-func NewLoginHandler(authService *service.AuthService) *loginHandler {
-	return &loginHandler{
+func NewLoginHandler(authService *service.AuthService) *LoginHandler {
+	return &LoginHandler{
 		authService: authService,
 	}
 }
 
-func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	formRequest := &serializer.LoginRequest{}
 
 	if formErrors := serializer.ValidatePostForm(r, formRequest); len(formErrors) > 0 {
@@ -26,7 +26,7 @@ func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.authService.FindUserByEmail(r.Context(), formRequest.Email)
+	user, err := h.authService.FindByEmail(r.Context(), formRequest.Email)
 	if err != nil {
 		// @improvement | maybe we can check if it's a not found error or not.
 		// if yes, render a 404 error.

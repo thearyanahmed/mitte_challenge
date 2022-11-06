@@ -2,23 +2,22 @@ package handler
 
 import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
-	"net/http"
-
 	"github.com/thearyanahmed/mitte_challenge/pkg/serializer"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
+	"net/http"
 )
 
-type profileHandler struct {
+type ProfileHandler struct {
 	userService *service.UserService
 }
 
-func NewProfileHandler(userSvc *service.UserService) *profileHandler {
-	return &profileHandler{
+func NewProfileHandler(userSvc *service.UserService) *ProfileHandler {
+	return &ProfileHandler{
 		userService: userSvc,
 	}
 }
 
-func (h *profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	filterRequest := &serializer.ProfileFilterRequest{}
 
 	if formErrors := serializer.ValidateGetQuery(r, filterRequest); len(formErrors) > 0 {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type swipeHandler struct {
+type SwipeHandler struct {
 	swipeService *service.SwipeService
 }
 
@@ -18,15 +18,15 @@ type swipeResponse struct {
 	MatchedSwipeId  string `json:"matched_swipe_id"`
 }
 
-func NewSwipeHandler(swipeSvc *service.SwipeService) *swipeHandler {
-	return &swipeHandler{
+func NewSwipeHandler(swipeSvc *service.SwipeService) *SwipeHandler {
+	return &SwipeHandler{
 		swipeService: swipeSvc,
 	}
 }
 
 // ServeHttp
 // After validating the request, we should check if
-func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *SwipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	swipeRequest := &serializer.SwipeRequest{}
 
 	if formErrors := serializer.ValidatePostForm(r, swipeRequest); len(formErrors) > 0 {
