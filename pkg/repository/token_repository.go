@@ -5,6 +5,7 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 const TokensCollection = "tokens"
@@ -19,15 +20,16 @@ func NewTokenRepository(db *mongo.Collection) *TokenRepository {
 	}
 }
 
-func (r *TokenRepository) StoreToken(ctx context.Context, token schema.TokenSchema) error {
+func (r *TokenRepository) Insert(ctx context.Context, token schema.TokenSchema) error {
 	token.ID = newObjectId()
+	token.CreatedAt = time.Now()
 
-	_ , err := r.collection.InsertOne(ctx, token)
+	_, err := r.collection.InsertOne(ctx, token)
 
 	return err
 }
 
-func (r *TokenRepository) FindToken(ctx context.Context, token string) (schema.TokenSchema, error) {
+func (r *TokenRepository) FindByToken(ctx context.Context, token string) (schema.TokenSchema, error) {
 	filter := bson.D{{"token", token}}
 
 	var tokenSchema schema.TokenSchema

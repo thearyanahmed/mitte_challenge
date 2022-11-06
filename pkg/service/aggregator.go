@@ -13,7 +13,11 @@ type Aggregator struct {
 
 func NewServiceAggregator(db *mongo.Database) *Aggregator {
 	userRepo := repository.NewUserRepository(db.Collection(repository.UsersCollection))
-	userSvc := NewUserService(userRepo)
+	traitRepo := repository.NewTraitRepository() // don't need db, faking it
+
+	traitSvc := NewTraitService(traitRepo)
+
+	userSvc := NewUserService(userRepo, traitSvc)
 
 	tokenRepository := repository.NewTokenRepository(db.Collection(repository.TokensCollection))
 	authSvc := NewAuthService(userRepo, tokenRepository)

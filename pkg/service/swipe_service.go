@@ -12,8 +12,8 @@ type SwipeService struct {
 }
 
 type swipeRepository interface {
-	InsertSwipe(ctx context.Context, schema schema.SwipeSchema) (schema.SwipeSchema, error)
-	GetSwipesByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error)
+	Insert(ctx context.Context, schema schema.SwipeSchema) (schema.SwipeSchema, error)
+	GetByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error)
 	CheckIfSwipeExists(ctx context.Context, userId, profileOwnerId string) (schema.SwipeSchema, bool, error)
 }
 
@@ -36,7 +36,7 @@ func (s *SwipeService) RecordSwipe(ctx context.Context, userId string, record re
 		ProfileOwnerID: record.GetProfileId(),
 	}
 
-	swipe, err := s.swipeRepository.InsertSwipe(ctx, recordSchema)
+	swipe, err := s.swipeRepository.Insert(ctx, recordSchema)
 
 	if err != nil {
 		return entity.Swipe{}, err

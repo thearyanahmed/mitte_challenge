@@ -6,14 +6,15 @@ import (
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 )
+
 type UserSchema struct {
-	ID        primitive.ObjectID    `json:"id" bson:"_id"`
-	Name      string    `json:"name" bson:"name"`
-	Email     string    `json:"email" bson:"email"`
-	Password  string    `json:"password" bson:"password"`
-	Age       int      `json:"age" bson:"age"`
-	Gender    string    `json:"gender" bson:"gender"`
-	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	ID        primitive.ObjectID `json:"id" bson:"_id"`
+	Name      string             `json:"name" bson:"name"`
+	Email     string             `json:"email" bson:"email"`
+	Password  string             `json:"password" bson:"password"`
+	Age       int                `json:"age" bson:"age"`
+	Gender    string             `json:"gender" bson:"gender"`
+	CreatedAt time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
 
 	Traits []UserTraitSchema `json:"traits" bson:"traits"`
 }

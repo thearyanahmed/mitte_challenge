@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -14,25 +13,32 @@ import (
 const defaultPasswordLength = 10
 
 type UserService struct {
-	repository UserRepository
+	userRepository UserRepository
+	traitService   traitSvc
 }
 
 type RequestFilter interface {
 	ToKeyValuePair() map[string]string
 }
 
+type traitSvc interface {
+	TakeRandom(n int) []entity.Trait
+}
+
 // UserRepository the bridge between db and service layer
 // context is passed from the handler layer, from the request context
 type UserRepository interface {
-	StoreUser(context.Context, *schema.UserSchema) (newlyCreatedId string, err error)
-	FindUserById(context.Context, string) (schema.UserSchema, error)
-	FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error)
-	FindUsers(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error)
+	Insert(context.Context, *schema.UserSchema) (newlyCreatedId string, err error)
+	FindById(context.Context, string) (schema.UserSchema, error)
+	FindByEmail(ctx context.Context, email string) (schema.UserSchema, error)
+	Find(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error)
+	FindMatch()
 }
 
-func NewUserService(repo UserRepository) *UserService {
+func NewUserService(userRepository UserRepository, traitService traitSvc) *UserService {
 	return &UserService{
-		repository: repo,
+		userRepository: userRepository,
+		traitService:   traitService,
 	}
 }
 
@@ -45,30 +51,18 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 		return entity.User{}, err
 	}
 
+	randomTraits := toUserTraits(u.traitService.TakeRandom(5))
+
 	usr := entity.User{
-		//ID:       uuid.New().String(),
 		Name:     gofakeit.Name(),
 		Password: hashed,
 		Email:    gofakeit.Email(),
 		Gender:   gofakeit.Gender(),
 		Age:      gofakeit.Number(1, 100),
-		Traits: []entity.UserTrait{
-			{
-				ID:    "12345",
-				Value: 61,
-			},
-			{
-				ID:    "12346",
-				Value: 96,
-			},
-			{
-				ID:    "12347",
-				Value: 58,
-			},
-		},
+		Traits:   randomTraits,
 	}
 
-	newlyCreatedId, err := u.repository.StoreUser(ctx, schema.FromNewUser(usr))
+	newlyCreatedId, err := u.userRepository.Insert(ctx, schema.FromNewUser(usr))
 
 	if err != nil {
 		return entity.User{}, err
@@ -76,7 +70,7 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 
 	usr.ID = newlyCreatedId
 	// fetch the user
-	createdUser, err := u.repository.FindUserById(ctx, usr.ID)
+	createdUser, err := u.userRepository.FindById(ctx, usr.ID)
 	if err != nil {
 		// user have been created, but can't fetch it, maybe db is unavailable ? or some other issue
 		return entity.User{}, err
@@ -87,6 +81,19 @@ func (u *UserService) CreateRandomUser(ctx context.Context) (entity.User, error)
 	newUserEntity.Password = randomStr
 
 	return newUserEntity, nil
+}
+
+func toUserTraits(traits []entity.Trait) []entity.UserTrait {
+	var collection []entity.UserTrait
+
+	for _, trait := range traits {
+		collection = append(collection, entity.UserTrait{
+			ID:    trait.ID,
+			Value: int8(gofakeit.Number(1, 100)),
+		})
+	}
+
+	return collection
 }
 
 func hashAndSalt(pwd []byte) (string, error) {
@@ -107,7 +114,16 @@ func hashAndSalt(pwd []byte) (string, error) {
 func (u *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
 	filters := requestFilter.ToKeyValuePair()
 
-	users, err := u.repository.FindUsers(ctx, filters)
+	// add attractiveness logic
+	// get auth user attractiveness
+	// where user_id not = auth user id
+	// sum
+	// sort by sum
+
+	// @note test query
+	//u.userRepository.FindMatch()
+
+	users, err := u.userRepository.Find(ctx, filters)
 	if err != nil {
 		return []entity.User{}, err
 	}

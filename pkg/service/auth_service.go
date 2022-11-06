@@ -20,12 +20,12 @@ type AuthService struct {
 }
 
 type authRepository interface {
-	FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error)
+	FindByEmail(ctx context.Context, email string) (schema.UserSchema, error)
 }
 
 type tokenRepository interface {
-	StoreToken(ctx context.Context, token schema.TokenSchema) error
-	FindToken(ctx context.Context, token string) (schema.TokenSchema, error)
+	Insert(ctx context.Context, token schema.TokenSchema) error
+	FindByToken(ctx context.Context, token string) (schema.TokenSchema, error)
 }
 
 func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService {
@@ -36,7 +36,7 @@ func NewAuthService(repo authRepository, tokenRepo tokenRepository) *AuthService
 }
 
 func (s *AuthService) ValidateToken(ctx context.Context, token string) (string, error) {
-	tokenSchema, err := s.tokenRepository.FindToken(ctx, token)
+	tokenSchema, err := s.tokenRepository.FindByToken(ctx, token)
 
 	if err != nil {
 		return "", err
@@ -53,8 +53,8 @@ func GetAuthUserId(r *http.Request) string {
 	return r.Context().Value(UserIDKey).(string)
 }
 
-func (s *AuthService) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
-	return s.userRepository.FindUserByEmail(ctx, email)
+func (s *AuthService) FindByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
+	return s.userRepository.FindByEmail(ctx, email)
 }
 
 // ComparePassword @todo hashing can live in it's own service
@@ -79,7 +79,7 @@ func (s *AuthService) GenerateNewToken(ctx context.Context, userId string) (enti
 
 	tok := newToken(userId, randomStr)
 
-	err = s.tokenRepository.StoreToken(ctx, schema.FromToken(tok))
+	err = s.tokenRepository.Insert(ctx, schema.FromToken(tok))
 
 	if err != nil {
 		return entity.Token{}, err

@@ -20,11 +20,11 @@ func NewSwipeRepository(db *mongo.Collection) *SwipeRepository {
 	}
 }
 
-func (r *SwipeRepository) InsertSwipe(ctx context.Context, swipe schema.SwipeSchema) (schema.SwipeSchema, error) {
+func (r *SwipeRepository) Insert(ctx context.Context, swipe schema.SwipeSchema) (schema.SwipeSchema, error) {
 	swipe.CreatedAt = time.Now()
 	swipe.ID = newObjectId()
 
-	_ , err := r.collection.InsertOne(ctx, swipe)
+	_, err := r.collection.InsertOne(ctx, swipe)
 
 	if err != nil {
 		return schema.SwipeSchema{}, err
@@ -33,7 +33,7 @@ func (r *SwipeRepository) InsertSwipe(ctx context.Context, swipe schema.SwipeSch
 	return swipe, err
 }
 
-func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error) {
+func (r *SwipeRepository) GetByUserId(ctx context.Context, userId string) ([]schema.SwipeSchema, error) {
 	filter := bson.D{{"swiped_by", userId}}
 
 	cursor, err := r.collection.Find(ctx, filter)
@@ -51,7 +51,7 @@ func (r SwipeRepository) GetSwipesByUserId(ctx context.Context, userId string) (
 	return results, nil
 }
 
-func (r SwipeRepository) CheckIfSwipeExists(ctx context.Context, swipedById, profileOwnerId string) (schema.SwipeSchema, bool, error) {
+func (r *SwipeRepository) CheckIfSwipeExists(ctx context.Context, swipedById, profileOwnerId string) (schema.SwipeSchema, bool, error) {
 	filters := bson.D{
 		{"$and",
 			bson.A{

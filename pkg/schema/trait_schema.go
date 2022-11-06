@@ -1,20 +1,17 @@
 package schema
 
-
-var (
-	Traits []TraitsSchema
+import (
+	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
 )
 
-func init() {
-	Traits = append(Traits, TraitsSchema{
-		ID:    "",
-		Name: "",
-	})
-}
-
-type TraitsSchema struct {
-	ID string `json:"id" bson:"_id"`
+type TraitSchema struct {
+	ID   string `json:"id" bson:"_id"`
 	Name string `json:"name"  bson:"name"`
 }
 
-
+func (t TraitSchema) ToEntity() entity.Trait {
+	return entity.Trait{
+		ID:   t.ID,
+		Name: t.Name,
+	}
+}
