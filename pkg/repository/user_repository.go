@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,8 +26,9 @@ func NewUserRepository(db *mongo.Collection) *UserRepository {
 	}
 }
 
-func (r *UserRepository) StoreUser(ctx context.Context, user *schema.UserSchema) (string, error) {
+func (r *UserRepository) Insert(ctx context.Context, user *schema.UserSchema) (string, error) {
 	user.ID = newObjectId()
+	user.CreatedAt = time.Now()
 
 	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
@@ -42,7 +44,7 @@ func (r *UserRepository) StoreUser(ctx context.Context, user *schema.UserSchema)
 	return oid.Hex(), nil
 }
 
-func (r *UserRepository) FindUserById(ctx context.Context, hex string) (schema.UserSchema, error) {
+func (r *UserRepository) FindById(ctx context.Context, hex string) (schema.UserSchema, error) {
 	objectId, err := primitive.ObjectIDFromHex(hex)
 
 	if err != nil {
@@ -58,8 +60,8 @@ func (r *UserRepository) FindUserById(ctx context.Context, hex string) (schema.U
 	return user, nil
 }
 
-// FindUserByEmail @todo change returns, manage errors better
-func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
+// FindByEmail @todo change returns, manage errors better
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (schema.UserSchema, error) {
 	filter := bson.D{{Key: "email", Value: email}}
 
 	var user schema.UserSchema
@@ -71,10 +73,8 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (sch
 	return user, nil
 }
 
-func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
+func (r *UserRepository) Find(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
 	filters := mapPropertyFilter(requestFilters)
-
-	fmt.Println("received filters", filters)
 
 	cursor, err := r.collection.Find(ctx, filters)
 
@@ -89,6 +89,107 @@ func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[strin
 	}
 
 	return results, nil
+}
+
+func (r *UserRepository) FindMatch() {
+	/**
+	db.users.aggregate([
+	  {
+	    '$match' : {
+	      '$and': [
+	        { 'gender': 'male' },
+	        { 'age' : { '$lte': 100 } },
+	        {
+	          '$or' : [
+	              {'traits.id' : '1'},
+	              {'traits.id' : '4'}
+	            ]
+	          }
+	      ]
+	    },
+	  },
+	  {
+	    '$project' :  {
+	      attractiveness_score : { '$sum' : '$traits.value' },
+	      name: '$name',
+	      email: '$email',
+	      age: '$age',
+	      gender: '$gender',
+	      traits: '$traits'
+	    }
+	  }
+	]).sort({ 'attractiveness_score' : -1 })
+	*/
+
+	project := bson.D{
+		{"name", "$name"},
+		{"email", "$email"},
+		{"age", "$age"},
+		{"gender", "$gender"},
+		{"traits", "$traits"},
+		{"attractiveness_score", bson.D{
+			{"$sum", "$traits.value"},
+		}},
+	}
+
+	sort := bson.D{
+		{"attractiveness_score", -1},
+	}
+
+	match := bson.D{{
+		"$and", bson.A{
+			bson.D{
+				{"gender", "male"},
+				{"age", bson.D{{"$lte", 100}}},
+				{"$or", bson.A{
+					bson.D{{"traits.id", "1"}},
+					bson.D{{"traits.id", "4"}},
+				}},
+			},
+		},
+	}}
+
+	_ = bson.D{
+		{"$and", bson.D{
+			{"gender", "male"},
+			{"age", bson.D{
+				{"$lte", 100},
+			}},
+			{"$or", bson.A{
+				bson.D{{"traits.id", "1"}},
+				bson.D{{"traits.id", "4"}},
+			}},
+		}},
+	}
+
+	//
+	//mongo.Pipeline{
+	//	//		{{"$group", bson.D{{"_id", "$state"}, {"totalPop", bson.D{{"$sum", "$pop"}}}}}},
+	//	//		{{"$match", bson.D{{"totalPop", bson.D{{"$gte", 10*1000*1000}}}}}},
+	//	//	}
+
+	pipeline := mongo.Pipeline{
+		{{"$match", match}},
+		{{"$project", project}},
+		{{"$sort", sort}},
+	}
+
+	cursor, err := r.collection.Aggregate(context.TODO(), pipeline)
+	if err != nil {
+		fmt.Println("EERRR_.1", err)
+		return
+	}
+
+	var results []schema.UserSchema
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		fmt.Println("EERRR_.2", err)
+		return
+	}
+
+	fmt.Println("HERE", len(results))
+	for _, user := range results {
+		fmt.Println("USER", user.ID, user.Name, user.Email, user.Gender, user.Traits)
+	}
 }
 
 func mapPropertyFilter(requestFilters map[string]string) bson.M {
