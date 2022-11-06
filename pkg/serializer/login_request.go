@@ -5,8 +5,8 @@ import (
 )
 
 type LoginRequest struct {
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Password string `json:"password" schema:"password"`
+	Email    string `json:"email" schema:"email"`
 }
 
 func (r *LoginRequest) Rules() govalidator.MapData {

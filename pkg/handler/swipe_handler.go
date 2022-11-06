@@ -28,7 +28,8 @@ func NewSwipeHandler(swipeSvc *service.SwipeService) *swipeHandler {
 // After validating the request, we should check if
 func (h *swipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	swipeRequest := &serializer.SwipeRequest{}
-	if formErrors := serializer.ValidateJson(r, swipeRequest); len(formErrors) > 0 {
+
+	if formErrors := serializer.ValidatePostForm(r, swipeRequest); len(formErrors) > 0 {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrorValidationFailed(formErrors))
 		return
 	}

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
@@ -72,6 +73,8 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (sch
 
 func (r *UserRepository) FindUsers(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
 	filters := mapPropertyFilter(requestFilters)
+
+	fmt.Println("received filters", filters)
 
 	cursor, err := r.collection.Find(ctx, filters)
 

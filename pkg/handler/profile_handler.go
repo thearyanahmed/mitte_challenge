@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"net/http"
 
-	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"github.com/thearyanahmed/mitte_challenge/pkg/serializer"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
@@ -20,10 +20,13 @@ func NewProfileHandler(userSvc *service.UserService) *profileHandler {
 
 func (h *profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	filterRequest := &serializer.ProfileFilterRequest{}
-	if formErrors := serializer.ValidateJson(r, filterRequest); len(formErrors) > 0 {
+
+	if formErrors := serializer.ValidateGetQuery(r, filterRequest); len(formErrors) > 0 {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrorValidationFailed(formErrors))
 		return
 	}
+
+	filterRequest.PopulateUsingQuery(r)
 
 	collection, err := h.userService.GetProfiles(r.Context(), filterRequest)
 

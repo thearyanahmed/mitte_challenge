@@ -21,7 +21,7 @@ func NewLoginHandler(authService *service.AuthService) *loginHandler {
 func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	formRequest := &serializer.LoginRequest{}
 
-	if formErrors := serializer.ValidateJson(r, formRequest); len(formErrors) > 0 {
+	if formErrors := serializer.ValidatePostForm(r, formRequest); len(formErrors) > 0 {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrorValidationFailed(formErrors))
 		return
 	}
