@@ -1,22 +1,22 @@
 package serializer
 
 import (
-	"reflect"
-	"strings"
-
-	"github.com/go-playground/validator/v10"
+	"github.com/thedevsaddam/govalidator"
+	"net/http"
+	"net/url"
 )
 
-// NewValidator returns a new validator.
-func NewValidator() *validator.Validate {
-	requestValidator := validator.New()
-	requestValidator.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		// skip if tag key says it should be ignored
-		if name == "-" {
-			return ""
-		}
-		return name
-	})
-	return requestValidator
+type RequestValidatorInterface interface {
+	Rules() govalidator.MapData
+}
+
+func ValidateJson(r *http.Request, validatable RequestValidatorInterface) url.Values {
+	opts := govalidator.Options{
+		Request: r,
+		Data:    &validatable,
+		Rules:   validatable.Rules(),
+	}
+
+	v := govalidator.New(opts)
+	return v.ValidateJSON()
 }

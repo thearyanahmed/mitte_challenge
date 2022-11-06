@@ -12,7 +12,7 @@ import (
 func CheckContentTypeJSON(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/json" {
-			_ = presenter.RenderErrorResponse(w, r, presenter.ErrNotacceptable())
+			_ = presenter.RenderErrorResponse(w, r, presenter.ErrNotAcceptable())
 		}
 		next.ServeHTTP(w, r.WithContext(r.Context()))
 	}

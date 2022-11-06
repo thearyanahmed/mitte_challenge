@@ -6,11 +6,12 @@ import (
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
-func SetupRouter(serviceAggregator *service.Aggregator) *chi.Mux {
+// BootstrapRouter sets up a new router, proper middlewares and sets up route-to-handler mapping
+func BootstrapRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
-	//r.Use(middleware.Recoverer)
+	r.Use(middleware.Recoverer)
 	r.With(CheckContentTypeJSON)
 
 	r.Route("/user", func(r chi.Router) {
@@ -18,19 +19,16 @@ func SetupRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		r.
-			Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
+		r.Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
 	})
 
 	r.Route("/profile", func(r chi.Router) {
-		r.
-			With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
+		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
 			Get("/", NewProfileHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	r.Route("/swipe", func(r chi.Router) {
-		r.
-			With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
+		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
 			Post("/", NewSwipeHandler(serviceAggregator.SwipeService).ServeHTTP)
 	})
 

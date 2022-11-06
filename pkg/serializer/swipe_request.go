@@ -1,22 +1,24 @@
 package serializer
 
-import (
-	"net/http"
-)
+import "github.com/thedevsaddam/govalidator"
 
 type SwipeRequest struct {
-	Preference     string `json:"preference,omitempty" validate:"required"`
-	ProfileOwnerID string `json:"profile_owner_id,omitempty" validate:"required"`
+	Preference     string `json:"preference"`
+	ProfileOwnerID string `json:"profile_owner_id"`
 }
 
-func (s *SwipeRequest) Bind(r *http.Request) error {
-	return nil
+func (r *SwipeRequest) Rules() govalidator.MapData {
+	return govalidator.MapData{
+		// @todo handle preference in a better way
+		"preference": []string{"required","in:yes,no"},
+		"profile_owner_id": []string{"required"},
+	}
 }
 
-func (s *SwipeRequest) GetPreference() string {
-	return s.Preference
+func (r *SwipeRequest) GetPreference() string {
+	return r.Preference
 }
 
-func (s *SwipeRequest) GetProfileId() string {
-	return s.ProfileOwnerID
+func (r *SwipeRequest) GetProfileId() string {
+	return r.ProfileOwnerID
 }

@@ -45,7 +45,7 @@ func init() {
 	//	log.Fatal(err)
 	//}
 
-	r := routeHandler.SetupRouter(aggregator)
+	r := routeHandler.BootstrapRouter(aggregator)
 
 	setupAdapter(r)
 }

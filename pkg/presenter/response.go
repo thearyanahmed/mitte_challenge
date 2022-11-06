@@ -2,9 +2,9 @@ package presenter
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/go-chi/render"
-	"github.com/go-playground/validator/v10"
 )
 
 type (
@@ -12,11 +12,10 @@ type (
 	ErrorResponse struct {
 		Code    int           `json:"code"`
 		Message string        `json:"message"`
-		Details []ErrorDetail `json:"details,omitempty"`
+		Details url.Values    `json:"details,omitempty"`
 	}
 
 	ErrorDetail struct {
-		Path    string      `json:"path"`
 		Message string      `json:"message"`
 		Param   interface{} `json:"param"`
 	}
@@ -27,8 +26,8 @@ func (e *ErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// ErrNotacceptable returns an error response for non application-json request.
-func ErrNotacceptable() *ErrorResponse {
+// ErrNotAcceptable returns an error response for non application-json request.
+func ErrNotAcceptable() *ErrorResponse {
 	return &ErrorResponse{
 		Code:    http.StatusNotAcceptable,
 		Message: "content-type must be application/json",
@@ -55,7 +54,6 @@ func ErrNotFound(err error) *ErrorResponse {
 	}
 }
 
-// ErrInvalidCredentials
 func ErrInvalidCredentials() *ErrorResponse {
 	return &ErrorResponse{
 		Code:    http.StatusUnauthorized,
@@ -63,7 +61,6 @@ func ErrInvalidCredentials() *ErrorResponse {
 	}
 }
 
-// ErrInvalidCredentials
 func ErrUnauthorized() *ErrorResponse {
 	return &ErrorResponse{
 		Code:    http.StatusUnauthorized,
@@ -71,36 +68,12 @@ func ErrUnauthorized() *ErrorResponse {
 	}
 }
 
-// ErrorInternal returns an error response for internal server error.
-func ErrorInternal(err error) *ErrorResponse {
-	return &ErrorResponse{
-		Code:    http.StatusInternalServerError,
-		Message: err.Error(), //"something went wrong",
-	}
-}
-
 // ErrorValidationFailed returns an error response for validation failed.
-func ErrorValidationFailed(err error) *ErrorResponse {
-	var details []ErrorDetail
-	for _, err := range err.(validator.ValidationErrors) {
-		details = append(details, ErrorDetail{
-			Path:    err.Field(),
-			Message: err.Tag(),
-			Param:   err.Value(),
-		})
-	}
+func ErrorValidationFailed(validationErrors url.Values) *ErrorResponse {
 	return &ErrorResponse{
 		Code:    http.StatusBadRequest,
-		Message: "validation failed",
-		Details: details,
-	}
-}
-
-// ErrorConflict returns an error response for unique constraints database error.
-func ErrorConflict(err error) *ErrorResponse {
-	return &ErrorResponse{
-		Code:    http.StatusConflict,
-		Message: err.Error(),
+		Message: "validation failed.",
+		Details: validationErrors,
 	}
 }
 
@@ -110,6 +83,7 @@ func RenderErrorResponse(w http.ResponseWriter, r *http.Request, er *ErrorRespon
 	return render.Render(w, r, er)
 }
 
+// RenderResponse render generic response
 func RenderResponse(w http.ResponseWriter, r *http.Request, statusCode int, data interface{}) {
 	render.Status(r, statusCode)
 	render.JSON(w, r, data)

@@ -1,14 +1,17 @@
 package serializer
 
-import "net/http"
+import (
+	"github.com/thedevsaddam/govalidator"
+)
 
-// UserUpdateRequest represents the request for create user.
 type LoginRequest struct {
-	Password string `json:"password" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
-// Bind only implements interface contract.
-func (u *LoginRequest) Bind(r *http.Request) error {
-	return nil
+func (r *LoginRequest) Rules() govalidator.MapData {
+	return govalidator.MapData{
+		"password": []string{"required", "max:100"},
+		"email":    []string{"required", "email", "max:100"},
+	}
 }

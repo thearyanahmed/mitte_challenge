@@ -42,7 +42,7 @@ func main() {
 	fmt.Println("DB CONNECTED")
 
 	aggregator := service.NewServiceAggregator(database)
-	r := routeHandler.SetupRouter(aggregator)
+	r := routeHandler.BootstrapRouter(aggregator)
 
 	// todo add concurrency, use wait groups
 	// make sure to add them inside lambda as well
