@@ -10,9 +10,9 @@ import (
 type (
 	// ErrorResponse represents the response structure for error resource.
 	ErrorResponse struct {
-		Code    int           `json:"code"`
-		Message string        `json:"message"`
-		Details url.Values    `json:"details,omitempty"`
+		Code    int        `json:"code"`
+		Message string     `json:"message"`
+		Details url.Values `json:"details,omitempty"`
 	}
 
 	ErrorDetail struct {
@@ -46,10 +46,10 @@ func ErrBadRequest(err error) *ErrorResponse {
 	}
 }
 
-// ErrNotFound returns an error response for not found.
-func ErrNotFound(err error) *ErrorResponse {
+// Err returns an error response for not found.
+func Err(err error, code int) *ErrorResponse {
 	return &ErrorResponse{
-		Code:    http.StatusNotFound,
+		Code:    code,
 		Message: err.Error(),
 	}
 }
