@@ -1,33 +1,40 @@
 package main
 
+// This file contains tests for running the application in lambda.
+
 import (
 	"context"
-	"net/http"
-	"testing"
-
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
-	ctx     = context.Background()
-	headers = map[string]string{"Content-Type": "application/json"}
+	ctx     = context.TODO()
+	headers = map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 )
 
-func TestHealthCheckRoute(t *testing.T) {
-	req := events.APIGatewayProxyRequest{
-		Path:       "/health-check",
-		Headers:    headers,
-		HTTPMethod: http.MethodGet,
-	}
+type user struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Age      int    `json:"age"`
+	Gender   string `json:"gender"`
+}
 
-	resp, err := handler(ctx, req)
+type loginValidationFailedResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Details struct {
+		Email []string `json:"email"`
+	} `json:"details"`
+}
 
-	assert.IsType(t, err, nil)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+type authToken struct {
+	Token string `json:"token"`
+}
 
-	expectedNonNullKeys := []string{"status", "time"}
-	for _, v := range expectedNonNullKeys {
-		assert.Contains(t, resp.Body, v)
-	}
+type swipeResponse struct {
+	Message         string `json:"message"`
+	Matched         bool   `json:"preference_matched"`
+	RecordedSwipeId string `json:"recorded_swipe_id"`
+	MatchedSwipeId  string `json:"matched_swipe_id"`
 }
