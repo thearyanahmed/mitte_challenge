@@ -13,11 +13,10 @@ services:
       context: .
     command: "go run /app/cmd/local/main.go"
     environment:
-      APP_PORT: '${APP_PORT}'
-      AWS_REGION: '${AWS_REGION}'
-      AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
-      AWS_SECRET_KEY: '${AWS_SECRET_KEY}'
-      REGION: '${AWS_REGION}'
+      _LAMBDA_SERVER_PORT: '${_LAMBDA_SERVER_PORT}'
+      AWS_LAMBDA_RUNTIME_API: '${AWS_LAMBDA_RUNTIME_API}'
+      DB_URI: '${DB_URI}'
+      DB_DATABASE: '${DB_DATABASE}'
     volumes:
       - .:/app
     ports:

@@ -11,8 +11,10 @@ func BootstrapRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
-	//r.Use(middleware.Recoverer)
+	r.Use(middleware.Recoverer)
 	r.With(CheckContentTypeJSON)
+
+	r.Get("/health-check", NewHealthCheckHandler(serviceAggregator.GetDB().Client()).ServeHTTP)
 
 	r.Route("/user", func(r chi.Router) {
 		r.Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
