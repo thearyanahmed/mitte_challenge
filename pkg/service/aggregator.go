@@ -9,6 +9,8 @@ type Aggregator struct {
 	*UserService
 	*AuthService
 	*SwipeService
+
+	db *mongo.Database
 }
 
 func NewServiceAggregator(db *mongo.Database) *Aggregator {
@@ -29,5 +31,10 @@ func NewServiceAggregator(db *mongo.Database) *Aggregator {
 		UserService:  userSvc,
 		AuthService:  authSvc,
 		SwipeService: swipeSvc,
+		db:           db,
 	}
+}
+
+func (a *Aggregator) GetDB() *mongo.Database {
+	return a.db
 }
