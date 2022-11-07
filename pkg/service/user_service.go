@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -151,7 +150,6 @@ func getPipeline(requestFilters map[string]interface{}, traitIds []string, userI
 	mappedFilters = append(mappedFilters, bson.D{{"_id", bson.D{{"$ne", userId}}}})
 
 	match := bson.D{{"$and", mappedFilters}}
-	fmt.Print(match)
 
 	return mongo.Pipeline{
 		{{"$match", match}},

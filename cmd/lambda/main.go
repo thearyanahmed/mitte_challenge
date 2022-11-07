@@ -44,7 +44,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
 	db.Serve(handler)
 }
 
