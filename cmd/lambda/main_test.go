@@ -14,19 +14,19 @@ var (
 	headers = map[string]string{"Content-Type": "application/json"}
 )
 
-func TestCreateRandomUserRoute(t *testing.T) {
+func TestHealthCheckRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
-		Path:       "/user/create",
+		Path:       "/health-check",
 		Headers:    headers,
-		HTTPMethod: http.MethodPost,
+		HTTPMethod: http.MethodGet,
 	}
 
 	resp, err := handler(ctx, req)
 
 	assert.IsType(t, err, nil)
-	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	expectedNonNullKeys := []string{"id", "name", "email", "password", "gender", "age"}
+	expectedNonNullKeys := []string{"status", "time"}
 	for _, v := range expectedNonNullKeys {
 		assert.Contains(t, resp.Body, v)
 	}
