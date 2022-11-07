@@ -121,3 +121,62 @@ func TestUserCanLoginWithValidCredentials(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 }
+
+func TestAttemptToLoginWithInvalidDataReturnsError(t *testing.T) {
+	body := url.Values{}
+	body.Set("email", "some_random_user@that_should_not_exists.com")
+	body.Set("password", "some_random_password")
+
+	req := events.APIGatewayProxyRequest{
+		Path:       "/auth/login",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+		Body:       body.Encode(),
+	}
+
+	resp, err := handler(ctx, req)
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var validationFailedResponse loginValidationFailedResponse
+
+	err = json.Unmarshal([]byte(resp.Body), &validationFailedResponse)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, validationFailedResponse.Code)
+	assert.Equal(t, validationFailedResponse.Message, "validation failed.")
+	assert.Equal(t, validationFailedResponse.Details.Email[0], "The email field must be a valid email address")
+}
+
+func login(email, password string) (events.APIGatewayProxyResponse, error) {
+	body := url.Values{}
+	body.Set("email", email)
+	body.Set("password", password)
+
+	req := events.APIGatewayProxyRequest{
+		Path:       "/auth/login",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+		Body:       body.Encode(),
+	}
+
+	return handler(ctx, req)
+}
+
+func loginWithNewlyCreatedUser(t *testing.T) (user, string, events.APIGatewayProxyResponse) {
+	user := createUser(t)
+
+	resp, err := login(user.Email, user.Password)
+
+	assert.Nil(t, err)
+
+	var authToken authToken
+
+	err = json.Unmarshal([]byte(resp.Body), &authToken)
+
+	assert.Nil(t, err)
+
+	return user, authToken.Token, resp
+}
