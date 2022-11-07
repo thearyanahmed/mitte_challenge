@@ -4,6 +4,10 @@ package main
 
 import (
 	"context"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
 )
 
 var (
@@ -37,4 +41,42 @@ type swipeResponse struct {
 	Matched         bool   `json:"preference_matched"`
 	RecordedSwipeId string `json:"recorded_swipe_id"`
 	MatchedSwipeId  string `json:"matched_swipe_id"`
+}
+
+func TestHealthCheckRoute(t *testing.T) {
+	req := events.APIGatewayProxyRequest{
+		Path:       "/health-check",
+		Headers:    headers,
+		HTTPMethod: http.MethodGet,
+	}
+
+	resp, err := handler(ctx, req)
+
+	assert.IsType(t, err, nil)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	expectedNonNullKeys := []string{"status", "time"}
+	for _, v := range expectedNonNullKeys {
+		assert.Contains(t, resp.Body, v)
+	}
+}
+
+func TestCreateRandomUser(t *testing.T) {
+	// /user/create
+	req := events.APIGatewayProxyRequest{
+		Path:       "/user/create",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err := handler(ctx, req)
+
+	assert.IsType(t, err, nil)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	keys := []string{"id", "name", "email", "password", "gender", "age"}
+
+	for _, k := range keys {
+		assert.Contains(t, resp.Body, k)
+	}
 }
