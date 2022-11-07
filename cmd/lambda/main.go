@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/thearyanahmed/mitte_challenge/pkg/config"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -15,42 +17,34 @@ import (
 
 var (
 	chiLambda *chiadapter.ChiLambda
+	client    *mongo.Client
 )
 
 func init() {
-	//envValues := config.GetEnvValues()
-	//
-	//db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
-	//
-	//if err != nil {
-	//	log.Fatalf("could not establish connection to database.%v\n", err)
-	//}
-	//fmt.Println(envValues)
+	config.CheckEnv()
 
-	client, database, err := platform.ConnectToMongo()
+	envValues := config.GetEnvValues()
+
+	dbc, database, err := platform.ConnectToMongo(context.TODO(), envValues.DbUri, envValues.DbDatabase)
+	client = dbc
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
 	aggregator := service.NewServiceAggregator(database)
-	//
-	//if err = platform.WaitForDB(context.Background(), db, "users"); err != nil {
-	//	log.Fatal(err)
-	//}
-
 	r := routeHandler.BootstrapRouter(aggregator)
 
 	setupAdapter(r)
 }
 
 func main() {
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	platform.Serve(handler)
 }
 
