@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/thearyanahmed/mitte_challenge/pkg/config"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
 
+	"github.com/thearyanahmed/mitte_challenge/pkg/db"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
-	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
@@ -20,14 +21,9 @@ func main() {
 		log.Fatal("error loading .env file")
 	}
 
-	//envValues := config.GetEnvValues()
-	//db, err := platform.CreateDbConnection(envValues.AccessKey, envValues.SecretKey, envValues.Token, envValues.Region, envValues.DbEndpoint)
-	//
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	envValues := config.GetEnvValues()
 
-	client, database, err := platform.ConnectToMongo()
+	client, database, err := db.ConnectToMongo(context.TODO(), envValues.DbUri, envValues.DbDatabase)
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,19 +35,12 @@ func main() {
 		}
 	}()
 
-	fmt.Println("DB CONNECTED")
-
 	aggregator := service.NewServiceAggregator(database)
 	r := routeHandler.BootstrapRouter(aggregator)
 
-	// todo add concurrency, use wait groups
-	// make sure to add them inside lambda as well
-	//if err = platform.WaitForDB(context.Background(), db, "users"); err != nil {
-	//	log.Fatal(err)
-	//}
-
 	addr := fmt.Sprintf("0.0.0.0:%s", getPort())
 
+	// @todo handle graceful shutdown
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("could not serve. %v\n", err)
 	}

@@ -10,8 +10,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
+	"github.com/thearyanahmed/mitte_challenge/pkg/db"
 	routeHandler "github.com/thearyanahmed/mitte_challenge/pkg/handler"
-	"github.com/thearyanahmed/mitte_challenge/pkg/platform"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
 )
 
@@ -25,7 +25,7 @@ func init() {
 
 	envValues := config.GetEnvValues()
 
-	dbc, database, err := platform.ConnectToMongo(context.TODO(), envValues.DbUri, envValues.DbDatabase)
+	dbc, database, err := db.ConnectToMongo(context.TODO(), envValues.DbUri, envValues.DbDatabase)
 	client = dbc
 
 	if err != nil {
@@ -45,7 +45,7 @@ func main() {
 		}
 	}()
 
-	platform.Serve(handler)
+	db.Serve(handler)
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
