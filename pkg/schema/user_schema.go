@@ -15,8 +15,7 @@ type UserSchema struct {
 	Age       int                `json:"age" bson:"age"`
 	Gender    string             `json:"gender" bson:"gender"`
 	CreatedAt time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
-
-	Traits []UserTraitSchema `json:"traits" bson:"traits"`
+	Traits    []UserTraitSchema  `json:"traits" bson:"traits"`
 }
 
 func FromNewUser(e entity.User) *UserSchema {
@@ -36,20 +35,6 @@ func FromNewUser(e entity.User) *UserSchema {
 	}
 
 	return &schema
-}
-
-// ToUserTraitSchema todo find a better name
-func ToUserTraitSchema(data []entity.UserTrait) []UserTraitSchema {
-	var collection []UserTraitSchema
-
-	for _, attr := range data {
-		collection = append(collection, UserTraitSchema{
-			ID:    attr.ID,
-			Value: attr.Value,
-		})
-	}
-
-	return collection
 }
 
 func (u UserSchema) ToEntity() entity.User {
