@@ -10,7 +10,7 @@ services:
   app:
     build:
       context: .
-    command: "make run-prod"
+    command: "make run"
     environment:
       _LAMBDA_SERVER_PORT: '${_LAMBDA_SERVER_PORT}'
       AWS_LAMBDA_RUNTIME_API: '${AWS_LAMBDA_RUNTIME_API}'
