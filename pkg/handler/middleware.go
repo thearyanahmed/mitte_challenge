@@ -19,17 +19,17 @@ func CheckContentTypeJSON(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-type authMiddleware struct {
+type AuthMiddleware struct {
 	service *service.AuthService
 }
 
-func NewAuthMiddleware(svc *service.AuthService) *authMiddleware {
-	return &authMiddleware{
+func NewAuthMiddleware(svc *service.AuthService) *AuthMiddleware {
+	return &AuthMiddleware{
 		service: svc,
 	}
 }
 
-func (m *authMiddleware) Handle(next http.Handler) http.Handler {
+func (m *AuthMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authToken := r.Header.Get("Authorization")
 
