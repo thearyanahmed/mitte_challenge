@@ -221,3 +221,74 @@ func TestAuthenticatedUserCanSwipeProfile(t *testing.T) {
 	assert.GreaterOrEqual(t, resp.StatusCode, http.StatusOK)
 	assert.LessOrEqual(t, resp.StatusCode, http.StatusCreated)
 }
+
+// Scenario
+// first we create 2 users. Then, the first user should swipe.
+// The second user should log in and swipe use on the first user's profile
+func TestUsersGetValidResponseBasedOnSwipePreference(t *testing.T) {
+	scenarios := [][]interface{}{
+		{"yes", "yes", true},
+		{"yes", "no", false},
+		{"no", "no", false},
+		{"no", "yes", false},
+	}
+
+	for _, scene := range scenarios {
+		resp := swipe(t, scene[0].(string), scene[1].(string))
+
+		var response swipeResponse
+
+		err := json.Unmarshal([]byte(resp.Body), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, scene[2], response.Matched)
+	}
+}
+
+func swipe(t *testing.T, firstUserPreference, secondUserPreference string) events.APIGatewayProxyResponse {
+	firstUser, token, _ := loginWithNewlyCreatedUser(t)
+
+	secondUser := createUser(t)
+	reqHeader := headers
+	reqHeader["Authorization"] = token
+
+	data := url.Values{}
+	data.Set("preference", firstUserPreference)
+	data.Set("profile_owner_id", secondUser.Id)
+
+	req := events.APIGatewayProxyRequest{
+		Path:       "/swipe",
+		Headers:    reqHeader,
+		Body:       data.Encode(),
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err := handler(ctx, req)
+	assert.Nil(t, err)
+
+	assert.Equal(t, resp.StatusCode, http.StatusCreated)
+
+	data.Set("preference", secondUserPreference)
+	data.Set("profile_owner_id", firstUser.Id)
+
+	loginResp, _ := login(secondUser.Email, secondUser.Password)
+
+	var secondUserToken authToken
+	err = json.Unmarshal([]byte(loginResp.Body), &secondUserToken)
+
+	reqHeader["Authorization"] = secondUserToken.Token
+
+	req = events.APIGatewayProxyRequest{
+		Path:       "/swipe",
+		Headers:    reqHeader,
+		Body:       data.Encode(),
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err = handler(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	return resp
+}
