@@ -30,7 +30,7 @@ func (e *ErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
 func ErrNotAcceptable() *ErrorResponse {
 	return &ErrorResponse{
 		Code:    http.StatusNotAcceptable,
-		Message: "content-type must be application/json",
+		Message: "content-type must be application/x-www-form-urlencoded",
 	}
 }
 

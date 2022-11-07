@@ -13,7 +13,7 @@ type SwipeHandler struct {
 
 type swipeResponse struct {
 	Message         string `json:"message"`
-	Matched         bool   `json:"preferenceMatched"`
+	Matched         bool   `json:"preference_matched"`
 	RecordedSwipeId string `json:"recorded_swipe_id"`
 	MatchedSwipeId  string `json:"matched_swipe_id"`
 }

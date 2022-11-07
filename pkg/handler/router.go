@@ -12,16 +12,15 @@ func BootstrapRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.With(CheckContentTypeJSON)
 
 	r.Get("/health-check", NewHealthCheckHandler(serviceAggregator.GetDB().Client()).ServeHTTP)
 
 	r.Route("/user", func(r chi.Router) {
-		r.Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
+		r.With(ValidateContentTypeMiddleware).Post("/create", NewCreateUserHandler(serviceAggregator.UserService).ServeHTTP)
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		r.Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
+		r.With(ValidateContentTypeMiddleware).Post("/login", NewLoginHandler(serviceAggregator.AuthService).ServeHTTP)
 	})
 
 	r.Route("/profile", func(r chi.Router) {
@@ -30,7 +29,8 @@ func BootstrapRouter(serviceAggregator *service.Aggregator) *chi.Mux {
 	})
 
 	r.Route("/swipe", func(r chi.Router) {
-		r.With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
+		r.With(ValidateContentTypeMiddleware).
+			With(NewAuthMiddleware(serviceAggregator.AuthService).Handle).
 			Post("/", NewSwipeHandler(serviceAggregator.SwipeService).ServeHTTP)
 	})
 
