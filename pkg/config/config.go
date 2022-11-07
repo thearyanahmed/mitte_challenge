@@ -6,17 +6,18 @@ import (
 )
 
 type EnvValues struct {
-	AccessKey, SecretKey, Region, Token, DbEndpoint string
+	DbUri, DbDatabase string
 }
 
-// you can setup .env using the aws cli. eg:
+// CheckEnv
+// you can set up .env using the aws cli. eg:
 // ```
 // aws lambda update-function-configuration --function-name my-function \
 // --environment "Variables={BUCKET=my-bucket,KEY=file.txt}"
 // ```
 // reference: https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
-func checkEnv() {
-	keys := []string{"AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "AWS_REGION", "DB_ENDPOINT"}
+func CheckEnv() {
+	keys := []string{"DB_URI", "DB_DATABASE"}
 
 	for _, key := range keys {
 		if os.Getenv(key) == "" {
@@ -26,13 +27,8 @@ func checkEnv() {
 }
 
 func GetEnvValues() EnvValues {
-	checkEnv()
-
 	return EnvValues{
-		AccessKey:  os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		SecretKey:  os.Getenv("AWS_SECRET_KEY"),
-		Region:     os.Getenv("AWS_REGION"),
-		Token:      "",
-		DbEndpoint: os.Getenv("DB_ENDPOINT"),
+		DbDatabase: os.Getenv("DB_DATABASE"),
+		DbUri:      os.Getenv("DB_URI"),
 	}
 }
