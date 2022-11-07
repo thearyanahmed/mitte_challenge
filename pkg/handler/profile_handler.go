@@ -27,7 +27,7 @@ func (h *ProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	filterRequest.PopulateUsingQuery(r)
 
-	collection, err := h.userService.GetProfiles(r.Context(), filterRequest)
+	collection, err := h.userService.GetProfilesFor(r.Context(), filterRequest, service.GetAuthUserId(r))
 
 	if err != nil {
 		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))

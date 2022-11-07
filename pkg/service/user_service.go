@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"strconv"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/thearyanahmed/mitte_challenge/pkg/entity"
@@ -18,7 +21,7 @@ type UserService struct {
 }
 
 type RequestFilter interface {
-	ToKeyValuePair() map[string]string
+	ToKeyValuePair() map[string]interface{}
 }
 
 type traitSvc interface {
@@ -31,8 +34,7 @@ type UserRepository interface {
 	Insert(context.Context, *schema.UserSchema) (newlyCreatedId string, err error)
 	FindById(context.Context, string) (schema.UserSchema, error)
 	FindByEmail(ctx context.Context, email string) (schema.UserSchema, error)
-	Find(ctx context.Context, filters map[string]string) ([]schema.UserSchema, error)
-	FindMatch()
+	Find(ctx context.Context, pipeline mongo.Pipeline) ([]schema.UserSchema, error)
 }
 
 func NewUserService(userRepository UserRepository, traitService traitSvc) *UserService {
@@ -111,19 +113,28 @@ func hashAndSalt(pwd []byte) (string, error) {
 	return string(hash), nil
 }
 
-func (u *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilter) ([]entity.User, error) {
-	filters := requestFilter.ToKeyValuePair()
-
+func (u *UserService) GetProfilesFor(ctx context.Context, requestFilter RequestFilter, userId string) ([]entity.User, error) {
 	// add attractiveness logic
 	// get auth user attractiveness
 	// where user_id not = auth user id
 	// sum
 	// sort by sum
 
-	// @note test query
-	//u.userRepository.FindMatch()
+	user, err := u.userRepository.FindById(ctx, userId)
 
-	users, err := u.userRepository.Find(ctx, filters)
+	if err != nil {
+		return []entity.User{}, nil
+	}
+
+	var userTraitIds []string
+
+	for _, v := range user.ToEntity().Traits {
+		userTraitIds = append(userTraitIds, v.ID)
+	}
+
+	pipeline := getPipeline(requestFilter.ToKeyValuePair(), userTraitIds)
+	users, err := u.userRepository.Find(ctx, pipeline)
+
 	if err != nil {
 		return []entity.User{}, err
 	}
@@ -134,4 +145,83 @@ func (u *UserService) GetProfiles(ctx context.Context, requestFilter RequestFilt
 	}
 
 	return usersCollection, nil
+}
+
+func getPipeline(requestFilters map[string]interface{}, traitIds []string) mongo.Pipeline {
+	mappedIds := mapTraitIds(traitIds)
+
+	if len(traitIds) > 0 {
+		requestFilters["$or"] = mappedIds
+	}
+
+	mappedFilters := mapPropertyFilter(requestFilters)
+
+	match := bson.D{{"$and", mappedFilters}}
+
+	if len(mappedFilters) > 0 {
+		return mongo.Pipeline{
+			{{"$match", match}},
+			{{"$project", getProjection()}},
+			{{"$sort", getSort()}},
+		}
+	}
+
+	return mongo.Pipeline{
+		{{"$project", getProjection()}},
+		{{"$sort", getSort()}},
+	}
+}
+
+func getProjection() bson.D {
+	return bson.D{
+		{"name", "$name"},
+		{"email", "$email"},
+		{"age", "$age"},
+		{"gender", "$gender"},
+		{"traits", "$traits"},
+		{"attractiveness_score", bson.D{
+			{"$sum", "$traits.value"},
+		}},
+	}
+}
+
+func getSort() bson.D {
+	return bson.D{
+		{"attractiveness_score", -1},
+	}
+}
+
+func mapTraitIds(traitIds []string) bson.A {
+	var mapped bson.A
+
+	for _, v := range traitIds {
+		mapped = append(mapped, bson.D{{"traits.id", v}})
+	}
+
+	return mapped
+}
+
+func mapPropertyFilter(requestFilters map[string]interface{}) bson.A {
+	var mapped bson.A
+
+	for k, v := range requestFilters {
+
+		var val interface{}
+		// if the value is string
+		if s, ok := v.(string); ok {
+			// check if the value is numeric or not
+			// if yes, cast before appending
+			if numeric, err := strconv.Atoi(s); err == nil {
+				val = numeric
+			} else {
+				val = v
+			}
+		} else {
+			val = v
+		}
+
+		mapped = append(mapped, bson.D{{k, val}})
+	}
+
+	return mapped
 }

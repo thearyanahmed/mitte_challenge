@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
@@ -73,135 +71,16 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (schema.
 	return user, nil
 }
 
-func (r *UserRepository) Find(ctx context.Context, requestFilters map[string]string) ([]schema.UserSchema, error) {
-	filters := mapPropertyFilter(requestFilters)
-
-	cursor, err := r.collection.Find(ctx, filters)
-
+func (r *UserRepository) Find(ctx context.Context, pipeline mongo.Pipeline) ([]schema.UserSchema, error) {
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return []schema.UserSchema{}, err
 	}
 
 	var results []schema.UserSchema
-
 	if err = cursor.All(ctx, &results); err != nil {
 		return []schema.UserSchema{}, err
 	}
 
 	return results, nil
-}
-
-func (r *UserRepository) FindMatch() {
-	/**
-	db.users.aggregate([
-	  {
-	    '$match' : {
-	      '$and': [
-	        { 'gender': 'male' },
-	        { 'age' : { '$lte': 100 } },
-	        {
-	          '$or' : [
-	              {'traits.id' : '1'},
-	              {'traits.id' : '4'}
-	            ]
-	          }
-	      ]
-	    },
-	  },
-	  {
-	    '$project' :  {
-	      attractiveness_score : { '$sum' : '$traits.value' },
-	      name: '$name',
-	      email: '$email',
-	      age: '$age',
-	      gender: '$gender',
-	      traits: '$traits'
-	    }
-	  }
-	]).sort({ 'attractiveness_score' : -1 })
-	*/
-
-	project := bson.D{
-		{"name", "$name"},
-		{"email", "$email"},
-		{"age", "$age"},
-		{"gender", "$gender"},
-		{"traits", "$traits"},
-		{"attractiveness_score", bson.D{
-			{"$sum", "$traits.value"},
-		}},
-	}
-
-	sort := bson.D{
-		{"attractiveness_score", -1},
-	}
-
-	match := bson.D{{
-		"$and", bson.A{
-			bson.D{
-				{"gender", "male"},
-				{"age", bson.D{{"$lte", 100}}},
-				{"$or", bson.A{
-					bson.D{{"traits.id", "1"}},
-					bson.D{{"traits.id", "4"}},
-				}},
-			},
-		},
-	}}
-
-	_ = bson.D{
-		{"$and", bson.D{
-			{"gender", "male"},
-			{"age", bson.D{
-				{"$lte", 100},
-			}},
-			{"$or", bson.A{
-				bson.D{{"traits.id", "1"}},
-				bson.D{{"traits.id", "4"}},
-			}},
-		}},
-	}
-
-	//
-	//mongo.Pipeline{
-	//	//		{{"$group", bson.D{{"_id", "$state"}, {"totalPop", bson.D{{"$sum", "$pop"}}}}}},
-	//	//		{{"$match", bson.D{{"totalPop", bson.D{{"$gte", 10*1000*1000}}}}}},
-	//	//	}
-
-	pipeline := mongo.Pipeline{
-		{{"$match", match}},
-		{{"$project", project}},
-		{{"$sort", sort}},
-	}
-
-	cursor, err := r.collection.Aggregate(context.TODO(), pipeline)
-	if err != nil {
-		fmt.Println("EERRR_.1", err)
-		return
-	}
-
-	var results []schema.UserSchema
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		fmt.Println("EERRR_.2", err)
-		return
-	}
-
-	fmt.Println("HERE", len(results))
-	for _, user := range results {
-		fmt.Println("USER", user.ID, user.Name, user.Email, user.Gender, user.Traits)
-	}
-}
-
-func mapPropertyFilter(requestFilters map[string]string) bson.M {
-	x := bson.M{}
-
-	for k, v := range requestFilters {
-		if numeric, err := strconv.Atoi(v); err == nil {
-			x[k] = numeric
-		} else {
-			x[k] = v
-		}
-	}
-
-	return x
 }

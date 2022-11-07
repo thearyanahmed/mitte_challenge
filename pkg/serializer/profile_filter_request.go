@@ -41,8 +41,8 @@ func (r *ProfileFilterRequest) PopulateUsingQuery(req *http.Request) {
 	}
 }
 
-func (r *ProfileFilterRequest) ToKeyValuePair() map[string]string {
-	kvMap := map[string]string{}
+func (r *ProfileFilterRequest) ToKeyValuePair() map[string]interface{} {
+	kvMap := map[string]interface{}{}
 
 	if r.Age != "" {
 		kvMap["age"] = r.Age

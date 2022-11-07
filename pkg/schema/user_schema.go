@@ -27,7 +27,7 @@ func FromNewUser(e entity.User) *UserSchema {
 		Age:       e.Age,
 		Gender:    e.Gender,
 		CreatedAt: e.CreatedAt,
-		Traits:    attributesEntityToSchemaCollection(e.Traits),
+		Traits:    ToUserTraitSchema(e.Traits),
 	}
 
 	if e.ID != "" {
@@ -38,8 +38,8 @@ func FromNewUser(e entity.User) *UserSchema {
 	return &schema
 }
 
-// todo find a better name
-func attributesEntityToSchemaCollection(data []entity.UserTrait) []UserTraitSchema {
+// ToUserTraitSchema todo find a better name
+func ToUserTraitSchema(data []entity.UserTrait) []UserTraitSchema {
 	var collection []UserTraitSchema
 
 	for _, attr := range data {

@@ -34,11 +34,13 @@ db.users.aggregate([{
 this one should work
 
 // todo : add where id not = mine
+
+```javascript
 db.users.aggregate([
   {
     '$match' : {
       '$and': [
-        { 'gender': 'male' },
+        { 'gender': 'female' },
         { 'age' : { '$lte': 100 } },
         { 
           '$or' : [
@@ -63,6 +65,7 @@ db.users.aggregate([
      $count: "email"
    }
 ]).sort({ 'attractiveness_score' : -1 })
+```
 ------------
 [//]: # (.sort&#40;{ 'total_value': -1  }&#41;)
 
