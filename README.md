@@ -20,6 +20,8 @@ The current project contains tests for lambda events. Also, for convenience, I'm
 **API Endpoints**
 > All post endpoints needs to include the header "Content-Type" : "application/x-www-form-urlencoded" and "Authorization" : "$token". `/auth/login` endpoint doesn't need to have auth token. 
 
+- Postman collection is present inside `docs/`.
+
 **[GET] `/health-check`**
 
 Health check returns a response with timestamp if all the services are okay. During this check, it performs a `ping()` on the database, if it fails, the service will return `ServiceUnavailable (503)`.
