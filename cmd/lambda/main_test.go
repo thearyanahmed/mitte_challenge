@@ -180,3 +180,44 @@ func loginWithNewlyCreatedUser(t *testing.T) (user, string, events.APIGatewayPro
 
 	return user, authToken.Token, resp
 }
+
+func TestUnauthenticatedUserCanNotSwipeProfile(t *testing.T) {
+	req := events.APIGatewayProxyRequest{
+		Path:       "/swipe",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err := handler(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestAuthenticatedUserCanSwipeProfile(t *testing.T) {
+	_, token, _ := loginWithNewlyCreatedUser(t)
+
+	newUser := createUser(t)
+
+	data := url.Values{}
+	data.Set("preference", "yes")
+	data.Set("profile_owner_id", newUser.Id)
+
+	reqHeader := headers
+	reqHeader["Authorization"] = token
+
+	req := events.APIGatewayProxyRequest{
+		Path:       "/swipe",
+		Headers:    reqHeader,
+		Body:       data.Encode(),
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err := handler(ctx, req)
+
+	assert.Nil(t, err)
+
+	// a record of swipe will be created if it doesn't exist. but it does, it will use that one
+	assert.GreaterOrEqual(t, resp.StatusCode, http.StatusOK)
+	assert.LessOrEqual(t, resp.StatusCode, http.StatusCreated)
+}
