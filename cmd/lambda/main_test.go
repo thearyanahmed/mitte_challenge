@@ -4,9 +4,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"net/url"
 	"testing"
 )
 
@@ -79,4 +81,43 @@ func TestCreateRandomUser(t *testing.T) {
 	for _, k := range keys {
 		assert.Contains(t, resp.Body, k)
 	}
+}
+
+func createUser(t *testing.T) user {
+	req := events.APIGatewayProxyRequest{
+		Path:       "/user/create",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+	}
+
+	resp, err := handler(ctx, req)
+
+	assert.Nil(t, err)
+
+	data := user{}
+	err = json.Unmarshal([]byte(resp.Body), &data)
+
+	assert.Nil(t, err)
+
+	return data
+}
+
+func TestUserCanLoginWithValidCredentials(t *testing.T) {
+	user := createUser(t)
+
+	body := url.Values{}
+	body.Set("email", user.Email)
+	body.Set("password", user.Password)
+
+	req := events.APIGatewayProxyRequest{
+		Path:       "/auth/login",
+		Headers:    headers,
+		HTTPMethod: http.MethodPost,
+		Body:       body.Encode(),
+	}
+
+	resp, err := handler(ctx, req)
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 }
