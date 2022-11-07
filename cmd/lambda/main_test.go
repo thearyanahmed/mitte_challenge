@@ -1,7 +1,6 @@
 package main
 
 // This file contains tests for running the application in lambda.
-
 import (
 	"context"
 	"encoding/json"
@@ -246,16 +245,20 @@ func TestUsersGetValidResponseBasedOnSwipePreference(t *testing.T) {
 }
 
 func swipe(t *testing.T, firstUserPreference, secondUserPreference string) events.APIGatewayProxyResponse {
+	// Create and login with first user
 	firstUser, token, _ := loginWithNewlyCreatedUser(t)
 
+	// create another user
 	secondUser := createUser(t)
 	reqHeader := headers
 	reqHeader["Authorization"] = token
 
+	// prepare data for the first user with preference
 	data := url.Values{}
 	data.Set("preference", firstUserPreference)
 	data.Set("profile_owner_id", secondUser.Id)
 
+	// make the request
 	req := events.APIGatewayProxyRequest{
 		Path:       "/swipe",
 		Headers:    reqHeader,
@@ -268,9 +271,11 @@ func swipe(t *testing.T, firstUserPreference, secondUserPreference string) event
 
 	assert.Equal(t, resp.StatusCode, http.StatusCreated)
 
+	// create data for the second user with preference
 	data.Set("preference", secondUserPreference)
 	data.Set("profile_owner_id", firstUser.Id)
 
+	// login as the second user
 	loginResp, _ := login(secondUser.Email, secondUser.Password)
 
 	var secondUserToken authToken
@@ -278,6 +283,7 @@ func swipe(t *testing.T, firstUserPreference, secondUserPreference string) event
 
 	reqHeader["Authorization"] = secondUserToken.Token
 
+	// make the request
 	req = events.APIGatewayProxyRequest{
 		Path:       "/swipe",
 		Headers:    reqHeader,
