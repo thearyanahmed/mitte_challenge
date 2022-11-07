@@ -1,10 +1,13 @@
 DOCKER_APP_CONTAINER = app
 DOCKER_COMPOSE_EXISTS := $(shell command -v docker-compose 2> /dev/null)
 
-.PHONY: docker-up docker-stop docker-ssh migrate-up migrate-down run build deps test build-api-docs
+.PHONY: docker-up docker-stop docker-ssh ps run run-prod build build-local deps test
 
 docker-up:
 	@docker-compose up -d
+
+ps:
+	@docker-compose ps
 
 docker-stop:
 	@docker-compose stop
@@ -24,14 +27,13 @@ build:
 build-local:
 	env GOOS=linux GOARCH=amd64 go build -o build/local -v cmd/local/main.go
 
-
 deps:
 	${call go, mod vendor}
 
 test:
 	${call con, ./test lambda }
 
-#---- docker enviroment ----
+#---- docker environment ----
 ifdef DOCKER_COMPOSE_EXISTS
 define go
 	@docker-compose exec ${DOCKER_APP_CONTAINER} go ${1}
