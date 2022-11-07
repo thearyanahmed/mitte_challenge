@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/thearyanahmed/mitte_challenge/pkg/schema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -126,7 +127,7 @@ func (u *UserService) GetProfilesFor(ctx context.Context, requestFilter RequestF
 		userTraitIds = append(userTraitIds, v.ID)
 	}
 
-	pipeline := getPipeline(requestFilter.ToKeyValuePair(), userTraitIds)
+	pipeline := getPipeline(requestFilter.ToKeyValuePair(), userTraitIds, userId)
 	users, err := u.userRepository.Find(ctx, pipeline)
 
 	if err != nil {
@@ -141,26 +142,19 @@ func (u *UserService) GetProfilesFor(ctx context.Context, requestFilter RequestF
 	return usersCollection, nil
 }
 
-func getPipeline(requestFilters map[string]interface{}, traitIds []string) mongo.Pipeline {
-	mappedIds := mapTraitIds(traitIds)
-
+func getPipeline(requestFilters map[string]interface{}, traitIds []string, userId string) mongo.Pipeline {
 	if len(traitIds) > 0 {
-		requestFilters["$or"] = mappedIds
+		requestFilters["$or"] = mapTraitIds(traitIds)
 	}
 
 	mappedFilters := mapPropertyFilter(requestFilters)
+	mappedFilters = append(mappedFilters, bson.D{{"_id", bson.D{{"$ne", userId}}}})
 
 	match := bson.D{{"$and", mappedFilters}}
-
-	if len(mappedFilters) > 0 {
-		return mongo.Pipeline{
-			{{"$match", match}},
-			{{"$project", getProjection()}},
-			{{"$sort", getSort()}},
-		}
-	}
+	fmt.Print(match)
 
 	return mongo.Pipeline{
+		{{"$match", match}},
 		{{"$project", getProjection()}},
 		{{"$sort", getSort()}},
 	}
