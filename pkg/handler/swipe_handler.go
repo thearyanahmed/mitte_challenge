@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/thearyanahmed/mitte_challenge/pkg/presenter"
 	"github.com/thearyanahmed/mitte_challenge/pkg/serializer"
 	"github.com/thearyanahmed/mitte_challenge/pkg/service"
@@ -37,6 +38,12 @@ func (h *SwipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// @todo check if new user id and auth id is same or not
 	authUserId := service.GetAuthUserId(r)
 
+	if authUserId == swipeRequest.ProfileOwnerID {
+		err := errors.New("can not swipe own profile")
+		_ = presenter.RenderErrorResponse(w, r, presenter.ErrBadRequest(err))
+		return
+	}
+
 	swipe, swiped, err := h.swipeService.CheckIfSwipeExists(r.Context(), authUserId, swipeRequest.ProfileOwnerID)
 
 	if err != nil {
@@ -67,7 +74,7 @@ func (h *SwipeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	matched := swipe.MatchedWith(authUserSwipe)
 
 	response := swipeResponse{
-		Message:         "swipe recorded.",
+		Message:         "swipe recorded",
 		Matched:         matched,
 		RecordedSwipeId: swipe.ID,
 	}

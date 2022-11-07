@@ -2,3 +2,4 @@
 out/
 docker/dynamodb/*.db
 build/
+.idea/

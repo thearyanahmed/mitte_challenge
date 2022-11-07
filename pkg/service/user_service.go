@@ -114,12 +114,6 @@ func hashAndSalt(pwd []byte) (string, error) {
 }
 
 func (u *UserService) GetProfilesFor(ctx context.Context, requestFilter RequestFilter, userId string) ([]entity.User, error) {
-	// add attractiveness logic
-	// get auth user attractiveness
-	// where user_id not = auth user id
-	// sum
-	// sort by sum
-
 	user, err := u.userRepository.FindById(ctx, userId)
 
 	if err != nil {
